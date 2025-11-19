@@ -17,6 +17,7 @@ interface CurriculoData {
 
 const MeuCurriculo = () => {
   const [curriculo, setCurriculo] = useState<CurriculoData | null>(null);
+  const [historico, setHistorico] = useState<CurriculoData[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
@@ -40,17 +41,19 @@ const MeuCurriculo = () => {
         return;
       }
 
+      // Busca todos os currículos do usuário
       const { data, error } = await supabase
         .from("curriculos")
         .select("*")
         .eq("user_id", user.id)
-        .order("uploaded_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .order("uploaded_at", { ascending: false });
 
       if (error) throw error;
       
-      setCurriculo(data);
+      if (data && data.length > 0) {
+        setCurriculo(data[0]); // O mais recente
+        setHistorico(data.slice(1)); // Todos os anteriores
+      }
     } catch (error) {
       console.error("Erro ao carregar currículo:", error);
       toast({
@@ -95,19 +98,7 @@ const MeuCurriculo = () => {
         throw new Error("Usuário não autenticado");
       }
 
-      // Delete old curriculum if exists
-      if (curriculo) {
-        await supabase.storage
-          .from("curriculos")
-          .remove([curriculo.file_path]);
-        
-        await supabase
-          .from("curriculos")
-          .delete()
-          .eq("id", curriculo.id);
-      }
-
-      // Upload new file
+      // Upload new file (não deleta mais o antigo para manter histórico)
       const fileExt = "pdf";
       const fileName = `${user.id}/curriculo-${Date.now()}.${fileExt}`;
       
@@ -131,6 +122,10 @@ const MeuCurriculo = () => {
 
       if (dbError) throw dbError;
 
+      // Move o currículo atual para o histórico
+      if (curriculo) {
+        setHistorico([curriculo, ...historico]);
+      }
       setCurriculo(newCurriculo);
       
       toast({
@@ -190,7 +185,13 @@ const MeuCurriculo = () => {
         .delete()
         .eq("id", curriculo.id);
 
-      setCurriculo(null);
+      // Move o próximo do histórico para o currículo atual
+      if (historico.length > 0) {
+        setCurriculo(historico[0]);
+        setHistorico(historico.slice(1));
+      } else {
+        setCurriculo(null);
+      }
       setInsights(null);
       
       toast({
@@ -202,6 +203,32 @@ const MeuCurriculo = () => {
       toast({
         title: "Erro",
         description: "Não foi possível remover o currículo",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownloadHistorico = async (item: CurriculoData) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("curriculos")
+        .download(item.file_path);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = item.file_name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Erro ao baixar:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível baixar o currículo",
         variant: "destructive",
       });
     }
@@ -398,6 +425,47 @@ const MeuCurriculo = () => {
             </div>
             <div className="text-sm text-foreground/90 whitespace-pre-line space-y-1">
               {insights}
+            </div>
+          </Card>
+        )}
+
+        {/* Histórico Section */}
+        {historico.length > 0 && (
+          <Card className="p-6">
+            <h4 className="font-bold text-foreground mb-4">
+              Histórico de Currículos
+            </h4>
+            <div className="space-y-3">
+              {historico.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {item.file_name}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{formatFileSize(item.file_size)}</span>
+                        <span>•</span>
+                        <span>{formatDate(item.uploaded_at)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDownloadHistorico(item)}
+                    className="flex-shrink-0"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
           </Card>
         )}
