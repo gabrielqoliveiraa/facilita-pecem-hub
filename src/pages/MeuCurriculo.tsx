@@ -292,7 +292,7 @@ const MeuCurriculo = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analisar-curriculo`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analisar-curriculo-v2`,
         {
           method: "POST",
           headers: {
