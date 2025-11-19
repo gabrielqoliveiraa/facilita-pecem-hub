@@ -1,8 +1,9 @@
-import { Search, SlidersHorizontal, Play } from "lucide-react";
+import { Search, SlidersHorizontal, Play, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +17,15 @@ interface Trilha {
   lessons_count: number;
   is_recommended: boolean;
   color_class: string | null;
+}
+
+interface TrilhaEmProgresso {
+  id: string;
+  title: string;
+  completedLessons: number;
+  totalLessons: number;
+  color: string;
+  timeToday: string;
 }
 
 const Trilhas = () => {
@@ -49,6 +59,51 @@ const Trilhas = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Mock data para minhas trilhas
+  const trilhasEmProgresso: TrilhaEmProgresso[] = [
+    {
+      id: "1",
+      title: "Matemática básica",
+      completedLessons: 14,
+      totalLessons: 24,
+      color: "bg-cyan-400",
+      timeToday: "60min",
+    },
+    {
+      id: "2",
+      title: "Guia LinkedIn básico",
+      completedLessons: 12,
+      totalLessons: 18,
+      color: "bg-orange-300",
+      timeToday: "45min",
+    },
+    {
+      id: "3",
+      title: "Produção industrial",
+      completedLessons: 10,
+      totalLessons: 16,
+      color: "bg-yellow-400",
+      timeToday: "30min",
+    },
+    {
+      id: "4",
+      title: "Marketing digital",
+      completedLessons: 10,
+      totalLessons: 16,
+      color: "bg-green-400",
+      timeToday: "30min",
+    },
+  ];
+
+  const totalTimeToday = trilhasEmProgresso.reduce((acc, trilha) => {
+    const minutes = parseInt(trilha.timeToday);
+    return acc + minutes;
+  }, 0);
+
+  const getProgressPercentage = (completed: number, total: number) => {
+    return (completed / total) * 100;
   };
 
   return (
@@ -100,71 +155,133 @@ const Trilhas = () => {
           </Button>
         </div>
 
-        {/* Recommended Trails */}
-        <div>
-          <h3 className="text-lg font-bold text-navy mb-3">Trilhas recomendadas</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Com base no seu perfil, competências e candidaturas.
-          </p>
-          
-          {loading ? (
-            <p className="text-center text-muted-foreground py-8">Carregando...</p>
-          ) : trilhasRecomendadas.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Nenhuma trilha recomendada</p>
-          ) : (
-            <div className="grid grid-cols-2 gap-4">
-              {trilhasRecomendadas.map((trilha) => (
-                <Card key={trilha.id} className={`${trilha.color_class} p-4 text-white relative overflow-hidden`}>
-                  <div className="relative z-10 space-y-3">
-                    <h4 className="font-bold text-lg leading-tight">
-                      {trilha.title}
-                    </h4>
-                    <Button size="sm" className="bg-white/20 hover:bg-white/30 backdrop-blur-sm">
-                      Iniciar trilha
-                    </Button>
-                  </div>
-                  {trilha.image_url && (
-                    <div className="absolute bottom-0 right-0 w-24 h-24 opacity-20">
-                      <img src={trilha.image_url} alt="" className="w-full h-full object-contain" />
-                    </div>
-                  )}
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Conteúdo baseado na aba ativa */}
+        {activeTab === "minhas" ? (
+          <>
+            {/* Daily Learning Stats */}
+            <Card className="bg-white p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Aprendizado do dia</p>
+                  <p className="text-3xl font-bold text-navy">{totalTimeToday}min</p>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Clock className="h-5 w-5" />
+                  <span className="text-sm">/ 60min</span>
+                </div>
+              </div>
+              <Progress value={(totalTimeToday / 60) * 100} className="mt-3 h-2" />
+            </Card>
 
-        {/* Other Trails */}
-        <div>
-          <h3 className="text-lg font-bold text-navy mb-4">Outras trilhas</h3>
-          
-          {loading ? (
-            <p className="text-center text-muted-foreground py-8">Carregando...</p>
-          ) : outrasTrilhas.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Nenhuma trilha disponível</p>
-          ) : (
-            <div className="space-y-3">
-              {outrasTrilhas.map((trilha) => (
-                <Card key={trilha.id} className="flex items-center gap-3 p-3">
-                  {trilha.image_url && (
-                    <img
-                      src={trilha.image_url}
-                      alt={trilha.title}
-                      className="w-20 h-20 rounded-lg object-cover"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <h4 className="font-bold text-navy mb-1">{trilha.title}</h4>
-                    <p className="text-sm text-primary">{trilha.lessons_count} aulas</p>
-                  </div>
-                  <Button size="icon" className="rounded-full bg-yellow hover:bg-yellow/90 h-12 w-12">
-                    <Play className="h-5 w-5 fill-current" />
-                  </Button>
-                </Card>
-              ))}
+            {/* Trilhas em Progresso */}
+            <div>
+              <h2 className="text-xl font-bold text-navy mb-4">Continue aprendendo</h2>
+              
+              <div className="grid grid-cols-2 gap-4">
+                {trilhasEmProgresso.map((trilha) => (
+                  <Card 
+                    key={trilha.id} 
+                    className={`${trilha.color} p-4 text-white relative overflow-hidden`}
+                  >
+                    <div className="relative z-10 space-y-3">
+                      <h4 className="font-bold text-base leading-tight min-h-[40px]">
+                        {trilha.title}
+                      </h4>
+                      
+                      <div className="space-y-2">
+                        <div className="h-1.5 bg-white/30 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-white rounded-full transition-all"
+                            style={{ width: `${getProgressPercentage(trilha.completedLessons, trilha.totalLessons)}%` }}
+                          />
+                        </div>
+                        
+                        <p className="text-sm font-medium">
+                          Completo {trilha.completedLessons}/{trilha.totalLessons}
+                        </p>
+                      </div>
+                      
+                      <Button 
+                        size="icon" 
+                        className="rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm h-12 w-12"
+                      >
+                        <Play className="h-5 w-5 fill-current" />
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          <>
+            {/* Recommended Trails */}
+            <div>
+              <h3 className="text-lg font-bold text-navy mb-3">Trilhas recomendadas</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Com base no seu perfil, competências e candidaturas.
+              </p>
+              
+              {loading ? (
+                <p className="text-center text-muted-foreground py-8">Carregando...</p>
+              ) : trilhasRecomendadas.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">Nenhuma trilha recomendada</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  {trilhasRecomendadas.map((trilha) => (
+                    <Card key={trilha.id} className={`${trilha.color_class} p-4 text-white relative overflow-hidden`}>
+                      <div className="relative z-10 space-y-3">
+                        <h4 className="font-bold text-lg leading-tight">
+                          {trilha.title}
+                        </h4>
+                        <Button size="sm" className="bg-white/20 hover:bg-white/30 backdrop-blur-sm">
+                          Iniciar trilha
+                        </Button>
+                      </div>
+                      {trilha.image_url && (
+                        <div className="absolute bottom-0 right-0 w-24 h-24 opacity-20">
+                          <img src={trilha.image_url} alt="" className="w-full h-full object-contain" />
+                        </div>
+                      )}
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Other Trails */}
+            <div>
+              <h3 className="text-lg font-bold text-navy mb-4">Outras trilhas</h3>
+              
+              {loading ? (
+                <p className="text-center text-muted-foreground py-8">Carregando...</p>
+              ) : outrasTrilhas.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">Nenhuma trilha disponível</p>
+              ) : (
+                <div className="space-y-3">
+                  {outrasTrilhas.map((trilha) => (
+                    <Card key={trilha.id} className="flex items-center gap-3 p-3">
+                      {trilha.image_url && (
+                        <img
+                          src={trilha.image_url}
+                          alt={trilha.title}
+                          className="w-20 h-20 rounded-lg object-cover"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h4 className="font-bold text-navy mb-1">{trilha.title}</h4>
+                        <p className="text-sm text-primary">{trilha.lessons_count} aulas</p>
+                      </div>
+                      <Button size="icon" className="rounded-full bg-yellow hover:bg-yellow/90 h-12 w-12">
+                        <Play className="h-5 w-5 fill-current" />
+                      </Button>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       <BottomNav />
