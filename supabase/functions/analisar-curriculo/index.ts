@@ -1,3 +1,5 @@
+import { encode as encodeBase64 } from "https://deno.land/std@0.176.0/encoding/base64.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -81,17 +83,9 @@ Deno.serve(async (req) => {
       throw new Error("Currículo muito grande para análise. Reduza o tamanho do PDF (máx. ~2MB).");
     }
 
-    // Convert to base64 em pequenos blocos para evitar estouro de stack
-    let base64 = "";
-    const chunkSize = 3 * 1024; // 3KB por bloco
-    for (let i = 0; i < uint8Array.length; i += chunkSize) {
-      const subArray = uint8Array.slice(i, i + chunkSize);
-      let binaryChunk = "";
-      for (let j = 0; j < subArray.length; j++) {
-        binaryChunk += String.fromCharCode(subArray[j]);
-      }
-      base64 += btoa(binaryChunk);
-    }
+    // Converte para base64 usando a biblioteca padrão do Deno (mais eficiente e segura)
+    // @ts-ignore - tipos do encodeBase64 aceitam Uint8Array em tempo de execução
+    const base64 = encodeBase64(uint8Array);
 
     console.log("PDF convertido para base64");
 
