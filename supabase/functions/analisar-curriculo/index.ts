@@ -52,8 +52,8 @@ Deno.serve(async (req) => {
 
     const arrayBuffer = await file.arrayBuffer();
     
-    if (arrayBuffer.byteLength > 2_000_000) {
-      throw new Error("Currículo muito grande para análise. Reduza o tamanho do PDF (máx. ~2MB).");
+    if (arrayBuffer.byteLength > 5_000_000) {
+      throw new Error("Currículo muito grande para análise. Reduza o tamanho do PDF (máx. 5MB).");
     }
 
     const pdfModule = await import("https://esm.sh/pdf-parse@1.1.1");
