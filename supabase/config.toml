@@ -1,1 +1,4 @@
 project_id = "sucsewwnukqezxgyyzel"
+
+[functions.analisar-curriculo]
+verify_jwt = true

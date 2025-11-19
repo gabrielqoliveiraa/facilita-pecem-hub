@@ -349,12 +349,19 @@ const MeuCurriculo = () => {
             <div className="mt-4 space-y-2">
               <Button
                 variant="default"
-                className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 relative"
                 onClick={handleAnalyze}
                 disabled={analyzing}
               >
-                <Sparkles className="h-4 w-4 mr-2" />
-                {analyzing ? "Analisando..." : "Analisar Currículo"}
+                {analyzing && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-r from-primary to-primary/80 rounded-md">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  </div>
+                )}
+                <Sparkles className={`h-4 w-4 mr-2 ${analyzing ? 'opacity-0' : ''}`} />
+                <span className={analyzing ? 'opacity-0' : ''}>
+                  {analyzing ? "Analisando..." : "Analisar Currículo"}
+                </span>
               </Button>
 
               <label htmlFor="file-replace">
