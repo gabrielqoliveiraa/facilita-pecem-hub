@@ -1,5 +1,3 @@
-import { encode as encodeBase64 } from "https://deno.land/std@0.176.0/encoding/base64.ts";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -11,10 +9,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { filePath } = await req.json();
+    const { curriculoTexto } = await req.json();
 
-    if (!filePath) {
-      throw new Error("filePath é obrigatório");
+    if (!curriculoTexto) {
+      throw new Error("curriculoTexto é obrigatório");
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -22,7 +20,7 @@ Deno.serve(async (req) => {
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
     const authHeader = req.headers.get("Authorization")!;
 
-    console.log("Iniciando análise para:", filePath);
+    console.log("Iniciando análise do currículo, tamanho:", curriculoTexto.length, "caracteres");
 
     // Get authenticated user
     const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
@@ -58,61 +56,8 @@ Deno.serve(async (req) => {
 
     console.log("Perfil carregado:", profile ? "Sim" : "Não");
 
-    // Download PDF from storage
-    const fileResponse = await fetch(
-      `${supabaseUrl}/storage/v1/object/curriculos/${filePath}`,
-      {
-        headers: {
-          "Authorization": `Bearer ${supabaseKey}`,
-        },
-      }
-    );
-
-    if (!fileResponse.ok) {
-      throw new Error("Erro ao baixar currículo");
-    }
-
-    const fileBlob = await fileResponse.blob();
-    const arrayBuffer = await fileBlob.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-    
-    console.log("PDF baixado, tamanho:", uint8Array.length, "bytes");
-
-    // Impede análise de PDFs muito grandes (ex: > 2MB)
-    if (uint8Array.length > 2_000_000) {
-      throw new Error("Currículo muito grande para análise. Reduza o tamanho do PDF (máx. ~2MB).");
-    }
-
-    // Converte para base64 usando a biblioteca padrão do Deno (mais eficiente e segura)
-    // @ts-ignore - tipos do encodeBase64 aceitam Uint8Array em tempo de execução
-    const base64 = encodeBase64(uint8Array);
-
-    console.log("PDF convertido para base64");
-
-    // Parse PDF
-    console.log("Chamando API de parse do PDF...");
-    const parseResponse = await fetch("https://api.lovable.app/v1/parse-document", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        content: base64,
-        filename: "curriculo.pdf",
-      }),
-    });
-
-    if (!parseResponse.ok) {
-      const errorText = await parseResponse.text();
-      console.error("Erro da API de parse:", parseResponse.status, errorText);
-      throw new Error(`Erro ao processar PDF: ${parseResponse.status} - ${errorText.slice(0, 200)}`);
-    }
-
-    const { text: curriculoTexto } = await parseResponse.json();
-    console.log("PDF parseado, texto extraído:", curriculoTexto.length, "caracteres");
-
-    // Limitar o tamanho do texto enviado para a IA para evitar estouro de pilha / payloads gigantes
-    const MAX_CHARS = 20000; // ~20k caracteres devem ser suficientes para um currículo
+    // Limitar o tamanho do texto enviado para a IA
+    const MAX_CHARS = 20000;
     const curriculoTextoLimitado = curriculoTexto.slice(0, MAX_CHARS);
     if (curriculoTexto.length > MAX_CHARS) {
       console.log(

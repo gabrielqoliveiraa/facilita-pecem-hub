@@ -280,8 +280,33 @@ const MeuCurriculo = () => {
     setInsights(null);
 
     try {
+      // Baixar o PDF do storage
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from("curriculos")
+        .download(curriculo.file_path);
+
+      if (downloadError) throw downloadError;
+
+      // Extrair texto do PDF usando pdfjs-dist
+      const pdfjsLib = await import("pdfjs-dist");
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+      const arrayBuffer = await fileData.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+      let curriculoTexto = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(" ");
+        curriculoTexto += pageText + "\n";
+      }
+
+      console.log("Texto extraído do PDF:", curriculoTexto.length, "caracteres");
+
+      // Enviar texto para análise
       const { data, error } = await supabase.functions.invoke("analisar-curriculo", {
-        body: { filePath: curriculo.file_path },
+        body: { curriculoTexto },
       });
 
       if (error) throw error;
@@ -296,7 +321,7 @@ const MeuCurriculo = () => {
       console.error("Erro ao analisar:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível analisar o currículo",
+        description: error instanceof Error ? error.message : "Não foi possível analisar o currículo",
         variant: "destructive",
       });
     } finally {
