@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const claudeApiKey = Deno.env.get("CLAUDE_KEY")!;
+    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
     const authHeader = req.headers.get("Authorization")!;
 
     const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
@@ -51,14 +51,44 @@ Deno.serve(async (req) => {
     }
 
     const arrayBuffer = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
     
-    if (arrayBuffer.byteLength > 5_000_000) {
+    if (uint8Array.length > 5_000_000) {
       throw new Error("Currículo muito grande para análise. Reduza o tamanho do PDF (máx. 5MB).");
     }
 
-    const base64Pdf = btoa(
-      new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-    );
+    let base64 = "";
+    const chunkSize = 3 * 1024;
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const subArray = uint8Array.slice(i, i + chunkSize);
+      let binaryChunk = "";
+      for (let j = 0; j < subArray.length; j++) {
+        binaryChunk += String.fromCharCode(subArray[j]);
+      }
+      base64 += btoa(binaryChunk);
+    }
+
+    const parseResponse = await fetch("https://ai.gateway.lovable.dev/v1/parse-document", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${lovableApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        content: base64,
+        filename: file.name || "curriculo.pdf",
+      }),
+    });
+
+    if (!parseResponse.ok) {
+      const errorText = await parseResponse.text();
+      throw new Error(`Erro ao processar PDF: ${parseResponse.status} - ${errorText.slice(0, 200)}`);
+    }
+
+    const { text: curriculoTexto } = await parseResponse.json();
+
+    const MAX_CHARS = 20000;
+    const curriculoTextoLimitado = curriculoTexto.slice(0, MAX_CHARS);
 
     const userContext = profile ? `
 Informações do usuário:
@@ -73,34 +103,19 @@ Informações do usuário:
 - Tem transporte: ${profile.tem_transporte ? "Sim" : "Não"}
 ` : "";
 
-    const aiResponse = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        "x-api-key": claudeApiKey,
-        "anthropic-version": "2023-06-01",
+        "Authorization": `Bearer ${lovableApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5",
-        max_tokens: 4096,
+        model: "google/gemini-2.5-flash",
         messages: [
           {
-            role: "user",
-            content: [
-              {
-                type: "document",
-                source: {
-                  type: "base64",
-                  media_type: "application/pdf",
-                  data: base64Pdf
-                }
-              },
-              {
-                type: "text",
-                text: `Você é um especialista em análise de currículos e orientação profissional. 
-Analise o currículo PDF acima e forneça insights práticos e acionáveis.
-
-${userContext}
+            role: "system",
+            content: `Você é um especialista em análise de currículos e orientação profissional. 
+Sua função é analisar o currículo fornecido e as informações do perfil do usuário para dar insights práticos e acionáveis.
 
 Analise o currículo considerando:
 1. Formatação e estrutura
@@ -116,8 +131,15 @@ Retorne os insights em formato de bullet points (use • para cada ponto), focan
 - Alinhamento com interesses e objetivos do usuário
 
 Seja direto, prático e construtivo. Máximo de 8-10 pontos.`
-              }
-            ]
+          },
+          {
+            role: "user",
+            content: `${userContext}
+
+Conteúdo do currículo (texto truncado se muito longo):
+${curriculoTextoLimitado}
+
+Por favor, analise este currículo e forneça insights para melhoria.`
           }
         ],
       }),
@@ -129,7 +151,7 @@ Seja direto, prático e construtivo. Máximo de 8-10 pontos.`
     }
 
     const aiData = await aiResponse.json();
-    const insights = aiData.content[0].text;
+    const insights = aiData.choices[0].message.content;
 
     return new Response(
       JSON.stringify({ insights }),
