@@ -26,6 +26,8 @@ interface TrilhaEmProgresso {
   completedLessons: number;
   totalLessons: number;
   color: string;
+  progressBarColor: string;
+  playButtonColor: string;
   timeToday: string;
 }
 
@@ -69,7 +71,9 @@ const Trilhas = () => {
       title: "Matemática básica",
       completedLessons: 14,
       totalLessons: 24,
-      color: "bg-[#3D8A39]",
+      color: "bg-[#9CD6DA]",
+      progressBarColor: "#5BA3A8",
+      playButtonColor: "#089CA6",
       timeToday: "60min",
     },
     {
@@ -77,7 +81,9 @@ const Trilhas = () => {
       title: "Guia LinkedIn básico",
       completedLessons: 12,
       totalLessons: 18,
-      color: "bg-[#089CA6]",
+      color: "bg-[#F4B89E]",
+      progressBarColor: "#E89872",
+      playButtonColor: "#E67E48",
       timeToday: "45min",
     },
     {
@@ -85,7 +91,9 @@ const Trilhas = () => {
       title: "Produção industrial",
       completedLessons: 10,
       totalLessons: 16,
-      color: "bg-[#9CD6DA]",
+      color: "bg-[#F4D88E]",
+      progressBarColor: "#E8C35F",
+      playButtonColor: "#D9A83D",
       timeToday: "30min",
     },
     {
@@ -94,6 +102,8 @@ const Trilhas = () => {
       completedLessons: 10,
       totalLessons: 16,
       color: "bg-[#B2E5B0]",
+      progressBarColor: "#7BC979",
+      playButtonColor: "#3D8A39",
       timeToday: "30min",
     },
   ];
@@ -178,43 +188,47 @@ const Trilhas = () => {
             <div>
               <h2 className="text-xl font-bold text-navy mb-4">Continue aprendendo</h2>
               
-              <div className="grid grid-cols-2 gap-4">
-                {trilhasEmProgresso.map((trilha) => (
+          <div className="grid grid-cols-2 gap-4">
+            {trilhasEmProgresso.map((trilha) => (
               <Card 
                 key={trilha.id} 
-                className={`${trilha.color} p-4 text-[#14142B] relative overflow-hidden`}
+                className={`${trilha.color} p-5 text-[#14142B] relative overflow-hidden rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.08)]`}
               >
-                <div className="relative z-10 space-y-3">
-                  <h4 className="font-bold text-base leading-tight min-h-[40px]">
+                <div className="relative z-10 space-y-4">
+                  <h4 className="font-bold text-lg leading-tight min-h-[44px]">
                     {trilha.title}
                   </h4>
-                      
+                  
                   <div className="space-y-2">
-                    <div className="h-1.5 bg-black/20 rounded-full overflow-hidden">
+                    <p className="text-xs font-medium opacity-70">
+                      Completo
+                    </p>
+                    <div className="h-2 bg-black/15 rounded-full overflow-hidden">
                       <div 
                         className="h-full rounded-full transition-all"
                         style={{ 
                           width: `${getProgressPercentage(trilha.completedLessons, trilha.totalLessons)}%`,
-                          background: `linear-gradient(90deg, ${trilha.color.replace('bg-[', '').replace(']', '')}33, ${trilha.color.replace('bg-[', '').replace(']', '')})`
+                          backgroundColor: trilha.progressBarColor
                         }}
                       />
                     </div>
                     
-                    <p className="text-sm font-medium">
-                      Completo {trilha.completedLessons}/{trilha.totalLessons}
+                    <p className="text-lg font-bold">
+                      {trilha.completedLessons}/{trilha.totalLessons}
                     </p>
                   </div>
-                      
+                  
                   <Button 
                     size="icon" 
-                    className="rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm h-12 w-12 text-[#14142B]"
+                    className="rounded-full h-12 w-12 hover:opacity-90 transition-opacity"
+                    style={{ backgroundColor: trilha.playButtonColor }}
                   >
-                    <Play className="h-5 w-5 fill-current" />
+                    <Play className="h-5 w-5 fill-white text-white" />
                   </Button>
-                    </div>
-                  </Card>
-                ))}
-              </div>
+                </div>
+              </Card>
+            ))}
+          </div>
             </div>
           </>
         ) : (
