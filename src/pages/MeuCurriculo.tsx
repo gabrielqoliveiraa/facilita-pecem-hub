@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ReactMarkdown from "react-markdown";
 
 interface CurriculoData {
   id: string;
@@ -484,8 +485,8 @@ const MeuCurriculo = () => {
               <Sparkles className="h-5 w-5 text-primary" />
               <h4 className="font-bold text-foreground">Insights da Análise</h4>
             </div>
-            <div className="text-sm text-foreground/90 whitespace-pre-line space-y-1">
-              {insights}
+            <div className="text-sm text-foreground/90 prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground prose-ul:text-foreground/90 prose-li:text-foreground/90">
+              <ReactMarkdown>{insights}</ReactMarkdown>
             </div>
           </Card>
         )}
