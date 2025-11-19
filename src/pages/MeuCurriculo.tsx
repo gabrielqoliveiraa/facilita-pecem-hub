@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Upload, FileText, Trash2, Download } from "lucide-react";
+import { Upload, FileText, Trash2, Download, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
@@ -19,6 +19,8 @@ const MeuCurriculo = () => {
   const [curriculo, setCurriculo] = useState<CurriculoData | null>(null);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [insights, setInsights] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
