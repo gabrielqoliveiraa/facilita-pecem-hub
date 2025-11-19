@@ -280,40 +280,34 @@ const MeuCurriculo = () => {
     setInsights(null);
 
     try {
-      // Baixar o PDF do storage
       const { data: fileData, error: downloadError } = await supabase.storage
         .from("curriculos")
         .download(curriculo.file_path);
 
       if (downloadError) throw downloadError;
 
-      // Extrair texto do PDF usando pdfjs-dist
-      const pdfjsLib = await import("pdfjs-dist");
+      const formData = new FormData();
+      formData.append("file", fileData, "curriculo.pdf");
+
+      const { data: { session } } = await supabase.auth.getSession();
       
-      // Configurar worker usando a versão local do pacote
-      const pdfjsWorker = await import("pdfjs-dist/build/pdf.worker.mjs?url");
-      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker.default;
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analisar-curriculo`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: formData,
+        }
+      );
 
-      const arrayBuffer = await fileData.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-      let curriculoTexto = "";
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items.map((item: any) => item.str).join(" ");
-        curriculoTexto += pageText + "\n";
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Erro ao analisar currículo");
       }
 
-      console.log("Texto extraído do PDF:", curriculoTexto.length, "caracteres");
-
-      // Enviar texto para análise
-      const { data, error } = await supabase.functions.invoke("analisar-curriculo", {
-        body: { curriculoTexto },
-      });
-
-      if (error) throw error;
-
+      const data = await response.json();
       setInsights(data.insights);
       
       toast({

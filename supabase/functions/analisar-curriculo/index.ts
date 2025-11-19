@@ -9,10 +9,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { curriculoTexto } = await req.json();
+    const formData = await req.formData();
+    const file = formData.get("file") as File;
 
-    if (!curriculoTexto) {
-      throw new Error("curriculoTexto é obrigatório");
+    if (!file) {
+      throw new Error("Arquivo PDF é obrigatório");
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -20,9 +21,6 @@ Deno.serve(async (req) => {
     const claudeApiKey = Deno.env.get("CLAUDE_KEY")!;
     const authHeader = req.headers.get("Authorization")!;
 
-    console.log("Iniciando análise do currículo, tamanho:", curriculoTexto.length, "caracteres");
-
-    // Get authenticated user
     const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: {
         "Authorization": authHeader,
@@ -35,9 +33,7 @@ Deno.serve(async (req) => {
     }
 
     const { id: userId } = await userResponse.json();
-    console.log("Usuário autenticado:", userId);
 
-    // Get user profile
     const profileResponse = await fetch(
       `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=*`,
       {
@@ -54,22 +50,21 @@ Deno.serve(async (req) => {
       profile = profiles[0];
     }
 
-    console.log("Perfil carregado:", profile ? "Sim" : "Não");
-
-    // Limitar o tamanho do texto enviado para a IA
-    const MAX_CHARS = 20000;
-    const curriculoTextoLimitado = curriculoTexto.slice(0, MAX_CHARS);
-    if (curriculoTexto.length > MAX_CHARS) {
-      console.log(
-        "Texto do currículo maior que o limite, será truncado de",
-        curriculoTexto.length,
-        "para",
-        MAX_CHARS,
-        "caracteres"
-      );
+    const arrayBuffer = await file.arrayBuffer();
+    
+    if (arrayBuffer.byteLength > 2_000_000) {
+      throw new Error("Currículo muito grande para análise. Reduza o tamanho do PDF (máx. ~2MB).");
     }
 
-    // Prepare context
+    const pdfModule = await import("https://esm.sh/pdf-parse@1.1.1");
+    const pdfParse = pdfModule.default;
+    
+    const pdfData = await pdfParse(new Uint8Array(arrayBuffer));
+    const curriculoTexto = pdfData.text;
+
+    const MAX_CHARS = 20000;
+    const curriculoTextoLimitado = curriculoTexto.slice(0, MAX_CHARS);
+
     const userContext = profile ? `
 Informações do usuário:
 - Nome: ${profile.nome || "Não informado"}
@@ -83,8 +78,6 @@ Informações do usuário:
 - Tem transporte: ${profile.tem_transporte ? "Sim" : "Não"}
 ` : "";
 
-    // Call Claude AI
-    console.log("Chamando Claude AI para análise...");
     const aiResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -118,7 +111,7 @@ Seja direto, prático e construtivo. Máximo de 8-10 pontos.
 
 ${userContext}
 
-Conteúdo do currículo (texto truncado se muito longo):
+Conteúdo do currículo:
 ${curriculoTextoLimitado}
 
 Por favor, analise este currículo e forneça insights para melhoria.`
@@ -129,14 +122,11 @@ Por favor, analise este currículo e forneça insights para melhoria.`
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error("Erro da API Claude:", aiResponse.status, errorText);
-      throw new Error("Erro ao gerar análise");
+      throw new Error(`Erro ao gerar análise: ${errorText.slice(0, 200)}`);
     }
 
     const aiData = await aiResponse.json();
     const insights = aiData.content[0].text;
-
-    console.log("Análise concluída com sucesso");
 
     return new Response(
       JSON.stringify({ insights }),
