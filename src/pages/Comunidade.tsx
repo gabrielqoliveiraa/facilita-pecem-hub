@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
@@ -131,7 +132,20 @@ const Comunidade = () => {
         {/* News Cards */}
         <div className="space-y-4">
           {loading ? (
-            <p className="text-center text-muted-foreground py-8">Carregando notícias...</p>
+            <>
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="overflow-hidden">
+                  <Skeleton className="w-full h-48" />
+                  <div className="p-4 space-y-3">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-10 w-40 rounded-full" />
+                  </div>
+                </Card>
+              ))}
+            </>
           ) : noticias.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">Nenhuma notícia disponível</p>
           ) : (
