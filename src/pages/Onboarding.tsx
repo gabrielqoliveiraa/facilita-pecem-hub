@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,9 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [idade, setIdade] = useState("");
   const [bairro, setBairro] = useState("");
   const [escolaridade, setEscolaridade] = useState("");
@@ -27,6 +30,18 @@ const Onboarding = () => {
     "Operações"
   ];
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/login");
+      } else {
+        setUserId(user.id);
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
   const toggleInteresse = (interesse: string) => {
     setInteresses(prev =>
       prev.includes(interesse)
@@ -35,7 +50,7 @@ const Onboarding = () => {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!idade || !bairro || !escolaridade || !experiencia || interesses.length === 0) {
@@ -43,27 +58,44 @@ const Onboarding = () => {
       return;
     }
 
-    // Mock AI analysis
-    const suggestedRoles = ["Logística", "Operações", "Manutenção"];
-    
-    localStorage.setItem("onboardingComplete", "true");
-    localStorage.setItem("userProfile", JSON.stringify({
-      idade,
-      bairro,
-      escolaridade,
-      experiencia,
-      interesses,
-      temInternet,
-      temTransporte,
-      horariosDisponiveis,
-      suggestedRoles
-    }));
+    if (!userId) {
+      toast.error("Erro ao identificar usuário");
+      return;
+    }
 
-    toast.success(`🎯 Você tem perfil ideal para: ${suggestedRoles.join(", ")}`);
-    
-    setTimeout(() => {
-      navigate("/");
-    }, 2000);
+    setLoading(true);
+
+    try {
+      // Mock AI analysis
+      const suggestedRoles = ["Logística", "Operações", "Manutenção"];
+      
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          idade: parseInt(idade),
+          bairro,
+          escolaridade,
+          experiencia,
+          interesses,
+          tem_internet: temInternet,
+          tem_transporte: temTransporte,
+          horarios_disponiveis: horariosDisponiveis,
+          sugestoes_ia: suggestedRoles,
+        })
+        .eq("id", userId);
+
+      if (error) throw error;
+
+      toast.success(`🎯 Você tem perfil ideal para: ${suggestedRoles.join(", ")}`);
+      
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao salvar perfil");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -86,6 +118,7 @@ const Onboarding = () => {
               value={idade}
               onChange={(e) => setIdade(e.target.value)}
               className="h-12"
+              disabled={loading}
             />
           </div>
 
@@ -98,12 +131,13 @@ const Onboarding = () => {
               value={bairro}
               onChange={(e) => setBairro(e.target.value)}
               className="h-12"
+              disabled={loading}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="escolaridade">Escolaridade *</Label>
-            <Select value={escolaridade} onValueChange={setEscolaridade}>
+            <Select value={escolaridade} onValueChange={setEscolaridade} disabled={loading}>
               <SelectTrigger className="h-12">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
@@ -119,7 +153,7 @@ const Onboarding = () => {
 
           <div className="space-y-2">
             <Label htmlFor="experiencia">Experiência profissional *</Label>
-            <Select value={experiencia} onValueChange={setExperiencia}>
+            <Select value={experiencia} onValueChange={setExperiencia} disabled={loading}>
               <SelectTrigger className="h-12">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
@@ -144,6 +178,7 @@ const Onboarding = () => {
                     id={interesse}
                     checked={interesses.includes(interesse)}
                     onCheckedChange={() => toggleInteresse(interesse)}
+                    disabled={loading}
                   />
                   <label
                     htmlFor={interesse}
@@ -164,6 +199,7 @@ const Onboarding = () => {
                   id="internet"
                   checked={temInternet}
                   onCheckedChange={(checked) => setTemInternet(checked as boolean)}
+                  disabled={loading}
                 />
                 <label htmlFor="internet" className="text-sm font-medium cursor-pointer">
                   Acesso à internet
@@ -174,6 +210,7 @@ const Onboarding = () => {
                   id="transporte"
                   checked={temTransporte}
                   onCheckedChange={(checked) => setTemTransporte(checked as boolean)}
+                  disabled={loading}
                 />
                 <label htmlFor="transporte" className="text-sm font-medium cursor-pointer">
                   Transporte próprio
@@ -191,11 +228,12 @@ const Onboarding = () => {
               value={horariosDisponiveis}
               onChange={(e) => setHorariosDisponiveis(e.target.value)}
               className="h-12"
+              disabled={loading}
             />
           </div>
 
-          <Button type="submit" className="w-full h-12 text-base">
-            Finalizar cadastro
+          <Button type="submit" className="w-full h-12 text-base" disabled={loading}>
+            {loading ? "Salvando..." : "Finalizar cadastro"}
           </Button>
         </form>
       </div>

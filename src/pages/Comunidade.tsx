@@ -1,13 +1,49 @@
-import { Search, SlidersHorizontal } from "lucide-react";
-import { useState } from "react";
+import { Search, SlidersHorizontal, LogOut } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Comunidade = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"noticias" | "visitas">("noticias");
+  const [userName, setUserName] = useState<string>("");
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/login");
+      } else {
+        // Get user profile
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("nome")
+          .eq("id", user.id)
+          .single();
+        
+        if (profile) {
+          setUserName(profile.nome);
+        }
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Logout realizado com sucesso!");
+      navigate("/login");
+    } catch (error: any) {
+      toast.error("Erro ao fazer logout");
+    }
+  };
 
   const noticias = [
     {
@@ -24,6 +60,19 @@ const Comunidade = () => {
       <Header title="Comunidade" />
       
       <div className="px-4 py-4 space-y-4">
+        {/* Welcome message */}
+        {userName && (
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Bem-vindo, <span className="font-semibold text-foreground">{userName}</span>
+            </p>
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sair
+            </Button>
+          </div>
+        )}
+
         {/* Search Bar */}
         <div className="flex gap-2">
           <div className="relative flex-1">

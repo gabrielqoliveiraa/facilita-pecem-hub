@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
@@ -18,15 +20,37 @@ const Login = () => {
       return;
     }
 
-    // Mock login - check if user has completed onboarding
-    const hasCompletedOnboarding = localStorage.getItem("onboardingComplete");
-    
-    toast.success("Login realizado com sucesso!");
-    
-    if (hasCompletedOnboarding) {
-      navigate("/");
-    } else {
-      navigate("/onboarding");
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        // Check if user has completed onboarding
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", data.user.id)
+          .single();
+
+        toast.success("Login realizado com sucesso!");
+        
+        // If profile doesn't have age, redirect to onboarding
+        if (!profile?.idade) {
+          navigate("/onboarding");
+        } else {
+          navigate("/");
+        }
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao fazer login");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,6 +72,7 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="h-12"
+              disabled={loading}
             />
           </div>
 
@@ -60,11 +85,12 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="h-12"
+              disabled={loading}
             />
           </div>
 
-          <Button type="submit" className="w-full h-12 text-base">
-            Entrar
+          <Button type="submit" className="w-full h-12 text-base" disabled={loading}>
+            {loading ? "Entrando..." : "Entrar"}
           </Button>
         </form>
 
@@ -74,6 +100,7 @@ const Login = () => {
             <button
               onClick={() => navigate("/signup")}
               className="text-primary font-medium hover:underline"
+              disabled={loading}
             >
               Cadastre-se
             </button>
