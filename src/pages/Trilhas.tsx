@@ -199,10 +199,7 @@ const Trilhas = () => {
                     {trilha.title}
                   </h4>
                   
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium opacity-70">
-                      Completo
-                    </p>
+                  <div className="space-y-3">
                     <div className="h-2 bg-black/15 rounded-full overflow-hidden">
                       <div 
                         className="h-full rounded-full transition-all"
@@ -213,18 +210,25 @@ const Trilhas = () => {
                       />
                     </div>
                     
-                    <p className="text-lg font-bold">
-                      {trilha.completedLessons}/{trilha.totalLessons}
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-medium opacity-70 mb-1">
+                          Completo
+                        </p>
+                        <p className="text-lg font-bold">
+                          {trilha.completedLessons}/{trilha.totalLessons}
+                        </p>
+                      </div>
+                      
+                      <Button 
+                        size="icon" 
+                        className="rounded-full h-12 w-12 hover:opacity-90 transition-opacity"
+                        style={{ backgroundColor: trilha.playButtonColor }}
+                      >
+                        <Play className="h-5 w-5 fill-white text-white" />
+                      </Button>
+                    </div>
                   </div>
-                  
-                  <Button 
-                    size="icon" 
-                    className="rounded-full h-12 w-12 hover:opacity-90 transition-opacity"
-                    style={{ backgroundColor: trilha.playButtonColor }}
-                  >
-                    <Play className="h-5 w-5 fill-white text-white" />
-                  </Button>
                 </div>
               </Card>
             ))}
