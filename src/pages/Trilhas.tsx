@@ -180,14 +180,14 @@ const Trilhas = () => {
               
               <div className="grid grid-cols-2 gap-4">
                 {trilhasEmProgresso.map((trilha) => (
-                  <Card 
-                    key={trilha.id} 
-                    className={`${trilha.color} p-4 text-white relative overflow-hidden`}
-                  >
-                    <div className="relative z-10 space-y-3">
-                      <h4 className="font-bold text-base leading-tight min-h-[40px]">
-                        {trilha.title}
-                      </h4>
+              <Card 
+                key={trilha.id} 
+                className={`${trilha.color} p-4 text-[#14142B] relative overflow-hidden`}
+              >
+                <div className="relative z-10 space-y-3">
+                  <h4 className="font-bold text-base leading-tight min-h-[40px]">
+                    {trilha.title}
+                  </h4>
                       
                   <div className="space-y-2">
                     <div className="h-1.5 bg-black/20 rounded-full overflow-hidden">
@@ -195,22 +195,22 @@ const Trilhas = () => {
                         className="h-full rounded-full transition-all"
                         style={{ 
                           width: `${getProgressPercentage(trilha.completedLessons, trilha.totalLessons)}%`,
-                          background: `linear-gradient(90deg, ${trilha.color.replace('bg-[', '').replace(']', '')}, ${trilha.color.replace('bg-[', '').replace(']', '')}dd)`
+                          background: `linear-gradient(90deg, ${trilha.color.replace('bg-[', '').replace(']', '')}33, ${trilha.color.replace('bg-[', '').replace(']', '')})`
                         }}
                       />
                     </div>
-                        
-                        <p className="text-sm font-medium">
-                          Completo {trilha.completedLessons}/{trilha.totalLessons}
-                        </p>
-                      </div>
+                    
+                    <p className="text-sm font-medium">
+                      Completo {trilha.completedLessons}/{trilha.totalLessons}
+                    </p>
+                  </div>
                       
-                      <Button 
-                        size="icon" 
-                        className="rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm h-12 w-12"
-                      >
-                        <Play className="h-5 w-5 fill-current" />
-                      </Button>
+                  <Button 
+                    size="icon" 
+                    className="rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm h-12 w-12 text-[#14142B]"
+                  >
+                    <Play className="h-5 w-5 fill-current" />
+                  </Button>
                     </div>
                   </Card>
                 ))}
