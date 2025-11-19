@@ -56,14 +56,9 @@ Deno.serve(async (req) => {
       throw new Error("Currículo muito grande para análise. Reduza o tamanho do PDF (máx. 5MB).");
     }
 
-    const pdfModule = await import("https://esm.sh/pdf-parse@1.1.1");
-    const pdfParse = pdfModule.default;
-    
-    const pdfData = await pdfParse(new Uint8Array(arrayBuffer));
-    const curriculoTexto = pdfData.text;
-
-    const MAX_CHARS = 20000;
-    const curriculoTextoLimitado = curriculoTexto.slice(0, MAX_CHARS);
+    const base64Pdf = btoa(
+      new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+    );
 
     const userContext = profile ? `
 Informações do usuário:
@@ -91,8 +86,21 @@ Informações do usuário:
         messages: [
           {
             role: "user",
-            content: `Você é um especialista em análise de currículos e orientação profissional. 
-Sua função é analisar o currículo fornecido e as informações do perfil do usuário para dar insights práticos e acionáveis.
+            content: [
+              {
+                type: "document",
+                source: {
+                  type: "base64",
+                  media_type: "application/pdf",
+                  data: base64Pdf
+                }
+              },
+              {
+                type: "text",
+                text: `Você é um especialista em análise de currículos e orientação profissional. 
+Analise o currículo PDF acima e forneça insights práticos e acionáveis.
+
+${userContext}
 
 Analise o currículo considerando:
 1. Formatação e estrutura
@@ -107,14 +115,9 @@ Retorne os insights em formato de bullet points (use • para cada ponto), focan
 - Sugestões específicas de como melhorar
 - Alinhamento com interesses e objetivos do usuário
 
-Seja direto, prático e construtivo. Máximo de 8-10 pontos.
-
-${userContext}
-
-Conteúdo do currículo:
-${curriculoTextoLimitado}
-
-Por favor, analise este currículo e forneça insights para melhoria.`
+Seja direto, prático e construtivo. Máximo de 8-10 pontos.`
+              }
+            ]
           }
         ],
       }),
