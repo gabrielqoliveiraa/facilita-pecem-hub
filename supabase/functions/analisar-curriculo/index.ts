@@ -114,6 +114,19 @@ Deno.serve(async (req) => {
     const { text: curriculoTexto } = await parseResponse.json();
     console.log("PDF parseado, texto extraído:", curriculoTexto.length, "caracteres");
 
+    // Limitar o tamanho do texto enviado para a IA para evitar estouro de pilha / payloads gigantes
+    const MAX_CHARS = 20000; // ~20k caracteres devem ser suficientes para um currículo
+    const curriculoTextoLimitado = curriculoTexto.slice(0, MAX_CHARS);
+    if (curriculoTexto.length > MAX_CHARS) {
+      console.log(
+        "Texto do currículo maior que o limite, será truncado de",
+        curriculoTexto.length,
+        "para",
+        MAX_CHARS,
+        "caracteres"
+      );
+    }
+
     // Prepare context
     const userContext = profile ? `
 Informações do usuário:
@@ -163,8 +176,8 @@ Seja direto, prático e construtivo. Máximo de 8-10 pontos.`
             role: "user",
             content: `${userContext}
 
-Conteúdo do currículo:
-${curriculoTexto}
+Conteúdo do currículo (texto truncado se muito longo):
+${curriculoTextoLimitado}
 
 Por favor, analise este currículo e forneça insights para melhoria.`
           }
