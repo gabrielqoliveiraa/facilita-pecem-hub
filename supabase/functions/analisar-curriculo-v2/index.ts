@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
+    const claudeKey = Deno.env.get("CLAUDE_KEY")!;
     const authHeader = req.headers.get("Authorization")!;
 
     const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
@@ -82,18 +82,28 @@ Informabes do usurio:
 - Tem transporte: ${profile.tem_transporte ? "Sim" : "No"}
 ` : "";
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${lovableApiKey}`,
+        "x-api-key": claudeKey,
+        "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "claude-sonnet-4-5",
+        max_tokens: 2048,
         messages: [
           {
             role: "user",
             content: [
+              {
+                type: "document",
+                source: {
+                  type: "base64",
+                  media_type: "application/pdf",
+                  data: base64
+                }
+              },
               {
                 type: "text",
                 text: `Você é um especialista em análise de currículos e orientação profissional. 
@@ -115,12 +125,6 @@ Retorne os insights em formato de bullet points (use • para cada ponto), focan
 - Alinhamento com interesses e objetivos do usuário
 
 Seja direto, prático e construtivo. Máximo de 8-10 pontos.`
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:application/pdf;base64,${base64}`
-                }
               }
             ]
           }
@@ -134,7 +138,7 @@ Seja direto, prático e construtivo. Máximo de 8-10 pontos.`
     }
 
     const aiData = await aiResponse.json();
-    const insights = aiData.choices[0].message.content;
+    const insights = aiData.content[0].text;
 
     return new Response(
       JSON.stringify({ insights }),
