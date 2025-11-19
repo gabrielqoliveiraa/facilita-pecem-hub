@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
+    const claudeApiKey = Deno.env.get("CLAUDE_KEY")!;
     const authHeader = req.headers.get("Authorization")!;
 
     console.log("Iniciando análise do currículo, tamanho:", curriculoTexto.length, "caracteres");
@@ -83,19 +83,21 @@ Informações do usuário:
 - Tem transporte: ${profile.tem_transporte ? "Sim" : "Não"}
 ` : "";
 
-    // Call Lovable AI
-    console.log("Chamando IA para análise...");
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Call Claude AI
+    console.log("Chamando Claude AI para análise...");
+    const aiResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${lovableApiKey}`,
+        "x-api-key": claudeApiKey,
+        "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "claude-sonnet-4-5",
+        max_tokens: 4096,
         messages: [
           {
-            role: "system",
+            role: "user",
             content: `Você é um especialista em análise de currículos e orientação profissional. 
 Sua função é analisar o currículo fornecido e as informações do perfil do usuário para dar insights práticos e acionáveis.
 
@@ -112,11 +114,9 @@ Retorne os insights em formato de bullet points (use • para cada ponto), focan
 - Sugestões específicas de como melhorar
 - Alinhamento com interesses e objetivos do usuário
 
-Seja direto, prático e construtivo. Máximo de 8-10 pontos.`
-          },
-          {
-            role: "user",
-            content: `${userContext}
+Seja direto, prático e construtivo. Máximo de 8-10 pontos.
+
+${userContext}
 
 Conteúdo do currículo (texto truncado se muito longo):
 ${curriculoTextoLimitado}
@@ -129,12 +129,12 @@ Por favor, analise este currículo e forneça insights para melhoria.`
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error("Erro da API AI:", errorText);
+      console.error("Erro da API Claude:", aiResponse.status, errorText);
       throw new Error("Erro ao gerar análise");
     }
 
     const aiData = await aiResponse.json();
-    const insights = aiData.choices[0].message.content;
+    const insights = aiData.content[0].text;
 
     console.log("Análise concluída com sucesso");
 
