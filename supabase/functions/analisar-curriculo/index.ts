@@ -90,6 +90,7 @@ Deno.serve(async (req) => {
     console.log("PDF convertido para base64");
 
     // Parse PDF
+    console.log("Chamando API de parse do PDF...");
     const parseResponse = await fetch("https://api.lovable.app/v1/parse-document", {
       method: "POST",
       headers: {
@@ -102,7 +103,9 @@ Deno.serve(async (req) => {
     });
 
     if (!parseResponse.ok) {
-      throw new Error("Erro ao processar PDF");
+      const errorText = await parseResponse.text();
+      console.error("Erro da API de parse:", parseResponse.status, errorText);
+      throw new Error(`Erro ao processar PDF: ${parseResponse.status} - ${errorText.slice(0, 200)}`);
     }
 
     const { text: curriculoTexto } = await parseResponse.json();
