@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -11,8 +12,9 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name || !email || !password || !confirmPassword) {
@@ -30,10 +32,35 @@ const Signup = () => {
       return;
     }
 
-    // Mock signup
-    localStorage.setItem("userName", name);
-    toast.success("Cadastro realizado com sucesso!");
-    navigate("/onboarding");
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            nome: name,
+          },
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        toast.success("Cadastro realizado com sucesso!");
+        navigate("/onboarding");
+      }
+    } catch (error: any) {
+      if (error.message?.includes("already registered")) {
+        toast.error("Este email já está cadastrado");
+      } else {
+        toast.error(error.message || "Erro ao criar conta");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -54,6 +81,7 @@ const Signup = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="h-12"
+              disabled={loading}
             />
           </div>
 
@@ -66,6 +94,7 @@ const Signup = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="h-12"
+              disabled={loading}
             />
           </div>
 
@@ -78,6 +107,7 @@ const Signup = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="h-12"
+              disabled={loading}
             />
           </div>
 
@@ -90,11 +120,12 @@ const Signup = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="h-12"
+              disabled={loading}
             />
           </div>
 
-          <Button type="submit" className="w-full h-12 text-base">
-            Cadastrar
+          <Button type="submit" className="w-full h-12 text-base" disabled={loading}>
+            {loading ? "Cadastrando..." : "Cadastrar"}
           </Button>
         </form>
 
@@ -104,6 +135,7 @@ const Signup = () => {
             <button
               onClick={() => navigate("/login")}
               className="text-primary font-medium hover:underline"
+              disabled={loading}
             >
               Entrar
             </button>
