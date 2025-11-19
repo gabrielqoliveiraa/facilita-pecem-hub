@@ -191,6 +191,7 @@ const MeuCurriculo = () => {
         .eq("id", curriculo.id);
 
       setCurriculo(null);
+      setInsights(null);
       
       toast({
         title: "Sucesso!",
@@ -203,6 +204,37 @@ const MeuCurriculo = () => {
         description: "Não foi possível remover o currículo",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleAnalyze = async () => {
+    if (!curriculo) return;
+
+    setAnalyzing(true);
+    setInsights(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("analisar-curriculo", {
+        body: { filePath: curriculo.file_path },
+      });
+
+      if (error) throw error;
+
+      setInsights(data.insights);
+      
+      toast({
+        title: "Análise concluída!",
+        description: "Confira os insights abaixo",
+      });
+    } catch (error) {
+      console.error("Erro ao analisar:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível analisar o currículo",
+        variant: "destructive",
+      });
+    } finally {
+      setAnalyzing(false);
     }
   };
 
@@ -314,10 +346,20 @@ const MeuCurriculo = () => {
               </Button>
             </div>
 
-            <div className="mt-4">
+            <div className="mt-4 space-y-2">
+              <Button
+                variant="default"
+                className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                onClick={handleAnalyze}
+                disabled={analyzing}
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                {analyzing ? "Analisando..." : "Analisar Currículo"}
+              </Button>
+
               <label htmlFor="file-replace">
                 <Button
-                  variant="default"
+                  variant="outline"
                   className="w-full"
                   disabled={uploading}
                   asChild
@@ -336,6 +378,19 @@ const MeuCurriculo = () => {
                   disabled={uploading}
                 />
               </label>
+            </div>
+          </Card>
+        )}
+
+        {/* AI Insights Section */}
+        {insights && (
+          <Card className="p-6 bg-primary/5 border-primary/20">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <h4 className="font-bold text-foreground">Insights da Análise</h4>
+            </div>
+            <div className="text-sm text-foreground/90 whitespace-pre-line space-y-1">
+              {insights}
             </div>
           </Card>
         )}
