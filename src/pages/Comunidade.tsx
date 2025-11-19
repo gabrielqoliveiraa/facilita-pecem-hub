@@ -45,15 +45,38 @@ const Comunidade = () => {
     }
   };
 
-  const noticias = [
-    {
-      id: 1,
-      date: "6 de novembro de 2025",
-      title: "CIPP e ZPE Ceará concluem 1ª Semana de Integridade com foco em Compliance e Riscos",
-      description: "A primeira edição da Semana da Integridade chegou ao fim nesta quinta-feira, 6, no auditório da ZPE Ceará com a realização de atividades relacionadas aos conceitos de Compliance e Gestão de Riscos. O encerramento do evento, voltado para colaboradores do Complexo do Pecém e da ZPE Ceará, contou com a participação de integrantes de toda [...]",
-      image: "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&auto=format&fit=crop"
+  const [noticias, setNoticias] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchNoticias();
+  }, []);
+
+  const fetchNoticias = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("noticias")
+        .select("*")
+        .eq("is_published", true)
+        .order("published_at", { ascending: false });
+
+      if (error) throw error;
+      setNoticias(data || []);
+    } catch (error: any) {
+      toast.error("Erro ao carregar notícias");
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString("pt-BR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -107,27 +130,35 @@ const Comunidade = () => {
 
         {/* News Cards */}
         <div className="space-y-4">
-          {noticias.map((noticia) => (
-            <Card key={noticia.id} className="overflow-hidden">
-              <img
-                src={noticia.image}
-                alt={noticia.title}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4 space-y-3">
-                <p className="text-sm text-primary font-medium">{noticia.date}</p>
-                <h3 className="text-lg font-bold text-navy leading-tight">
-                  {noticia.title}
-                </h3>
-                <p className="text-sm text-muted-foreground line-clamp-3">
-                  {noticia.description}
-                </p>
-                <Button className="rounded-full">
-                  Ver notícia completa
-                </Button>
-              </div>
-            </Card>
-          ))}
+          {loading ? (
+            <p className="text-center text-muted-foreground py-8">Carregando notícias...</p>
+          ) : noticias.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">Nenhuma notícia disponível</p>
+          ) : (
+            noticias.map((noticia) => (
+              <Card key={noticia.id} className="overflow-hidden">
+                {noticia.image_url && (
+                  <img
+                    src={noticia.image_url}
+                    alt={noticia.title}
+                    className="w-full h-48 object-cover"
+                  />
+                )}
+                <div className="p-4 space-y-3">
+                  <p className="text-sm text-primary font-medium">{formatDate(noticia.published_at)}</p>
+                  <h3 className="text-lg font-bold text-navy leading-tight">
+                    {noticia.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {noticia.description}
+                  </p>
+                  <Button className="rounded-full">
+                    Ver notícia completa
+                  </Button>
+                </div>
+              </Card>
+            ))
+          )}
         </div>
       </div>
 
