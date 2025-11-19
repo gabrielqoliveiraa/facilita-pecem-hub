@@ -69,7 +69,7 @@ const Trilhas = () => {
       title: "Matemática básica",
       completedLessons: 14,
       totalLessons: 24,
-      color: "bg-cyan-400",
+      color: "bg-[#3D8A39]",
       timeToday: "60min",
     },
     {
@@ -77,7 +77,7 @@ const Trilhas = () => {
       title: "Guia LinkedIn básico",
       completedLessons: 12,
       totalLessons: 18,
-      color: "bg-orange-300",
+      color: "bg-[#089CA6]",
       timeToday: "45min",
     },
     {
@@ -85,7 +85,7 @@ const Trilhas = () => {
       title: "Produção industrial",
       completedLessons: 10,
       totalLessons: 16,
-      color: "bg-yellow-400",
+      color: "bg-[#9CD6DA]",
       timeToday: "30min",
     },
     {
@@ -93,7 +93,7 @@ const Trilhas = () => {
       title: "Marketing digital",
       completedLessons: 10,
       totalLessons: 16,
-      color: "bg-green-400",
+      color: "bg-[#B2E5B0]",
       timeToday: "30min",
     },
   ];
@@ -189,13 +189,16 @@ const Trilhas = () => {
                         {trilha.title}
                       </h4>
                       
-                      <div className="space-y-2">
-                        <div className="h-1.5 bg-white/30 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-white rounded-full transition-all"
-                            style={{ width: `${getProgressPercentage(trilha.completedLessons, trilha.totalLessons)}%` }}
-                          />
-                        </div>
+                  <div className="space-y-2">
+                    <div className="h-1.5 bg-black/20 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all"
+                        style={{ 
+                          width: `${getProgressPercentage(trilha.completedLessons, trilha.totalLessons)}%`,
+                          background: `linear-gradient(90deg, ${trilha.color.replace('bg-[', '').replace(']', '')}, ${trilha.color.replace('bg-[', '').replace(']', '')}dd)`
+                        }}
+                      />
+                    </div>
                         
                         <p className="text-sm font-medium">
                           Completo {trilha.completedLessons}/{trilha.totalLessons}
