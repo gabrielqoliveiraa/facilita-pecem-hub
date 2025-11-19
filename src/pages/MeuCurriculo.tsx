@@ -89,6 +89,17 @@ const MeuCurriculo = () => {
       return;
     }
 
+    // Verificar limite de 5 currículos
+    const totalCurriculos = (curriculo ? 1 : 0) + historico.length;
+    if (totalCurriculos >= 5) {
+      toast({
+        title: "Limite atingido",
+        description: "Você atingiu o limite de 5 currículos. Exclua um currículo do histórico para enviar outro.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUploading(true);
 
     try {
@@ -229,6 +240,34 @@ const MeuCurriculo = () => {
       toast({
         title: "Erro",
         description: "Não foi possível baixar o currículo",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteHistorico = async (item: CurriculoData) => {
+    try {
+      await supabase.storage
+        .from("curriculos")
+        .remove([item.file_path]);
+      
+      await supabase
+        .from("curriculos")
+        .delete()
+        .eq("id", item.id);
+
+      // Remove do estado local
+      setHistorico(historico.filter(h => h.id !== item.id));
+      
+      toast({
+        title: "Sucesso!",
+        description: "Currículo removido do histórico",
+      });
+    } catch (error) {
+      console.error("Erro ao deletar:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o currículo",
         variant: "destructive",
       });
     }
@@ -433,7 +472,7 @@ const MeuCurriculo = () => {
         {historico.length > 0 && (
           <Card className="p-6">
             <h4 className="font-bold text-foreground mb-4">
-              Histórico de Currículos
+              Histórico de Currículos ({historico.length}/5)
             </h4>
             <div className="space-y-3">
               {historico.map((item) => (
@@ -456,14 +495,23 @@ const MeuCurriculo = () => {
                       </div>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDownloadHistorico(item)}
-                    className="flex-shrink-0"
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDownloadHistorico(item)}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteHistorico(item)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
