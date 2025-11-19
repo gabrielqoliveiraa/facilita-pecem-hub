@@ -12,6 +12,7 @@ import Trilhas from "./pages/Trilhas";
 import MinhasTrilhas from "./pages/MinhasTrilhas";
 import Rotas from "./pages/Rotas";
 import Vagas from "./pages/Vagas";
+import MeuCurriculo from "./pages/MeuCurriculo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/minhas-trilhas" element={<MinhasTrilhas />} />
           <Route path="/rotas" element={<Rotas />} />
           <Route path="/vagas" element={<Vagas />} />
+          <Route path="/meu-curriculo" element={<MeuCurriculo />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
