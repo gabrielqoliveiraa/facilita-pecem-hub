@@ -1,6 +1,3 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -21,44 +18,76 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
+    const authHeader = req.headers.get("Authorization")!;
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    console.log("Iniciando análise para:", filePath);
 
     // Get authenticated user
-    const authHeader = req.headers.get("Authorization")!;
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: {
+        "Authorization": authHeader,
+        "apikey": supabaseKey,
+      },
+    });
 
-    if (userError || !user) {
+    if (!userResponse.ok) {
       throw new Error("Usuário não autenticado");
     }
 
-    // Get user profile data
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
+    const { id: userId } = await userResponse.json();
+    console.log("Usuário autenticado:", userId);
 
-    if (profileError) {
-      console.error("Erro ao buscar perfil:", profileError);
+    // Get user profile
+    const profileResponse = await fetch(
+      `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=*`,
+      {
+        headers: {
+          "apikey": supabaseKey,
+          "Authorization": `Bearer ${supabaseKey}`,
+        },
+      }
+    );
+
+    let profile = null;
+    if (profileResponse.ok) {
+      const profiles = await profileResponse.json();
+      profile = profiles[0];
     }
+
+    console.log("Perfil carregado:", profile ? "Sim" : "Não");
 
     // Download PDF from storage
-    const { data: fileData, error: downloadError } = await supabase.storage
-      .from("curriculos")
-      .download(filePath);
+    const fileResponse = await fetch(
+      `${supabaseUrl}/storage/v1/object/curriculos/${filePath}`,
+      {
+        headers: {
+          "Authorization": `Bearer ${supabaseKey}`,
+        },
+      }
+    );
 
-    if (downloadError) {
-      throw new Error(`Erro ao baixar currículo: ${downloadError.message}`);
+    if (!fileResponse.ok) {
+      throw new Error("Erro ao baixar currículo");
     }
 
-    // Convert blob to base64
-    const arrayBuffer = await fileData.arrayBuffer();
+    const fileBlob = await fileResponse.blob();
+    const arrayBuffer = await fileBlob.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
-    const base64 = btoa(String.fromCharCode(...uint8Array));
+    
+    console.log("PDF baixado, tamanho:", uint8Array.length, "bytes");
 
-    // Parse PDF using Lovable's document parser
+    // Convert to base64 in chunks
+    let binaryString = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.slice(i, i + chunkSize);
+      binaryString += String.fromCharCode(...chunk);
+    }
+    const base64 = btoa(binaryString);
+
+    console.log("PDF convertido para base64");
+
+    // Parse PDF
     const parseResponse = await fetch("https://api.lovable.app/v1/parse-document", {
       method: "POST",
       headers: {
@@ -75,8 +104,9 @@ Deno.serve(async (req) => {
     }
 
     const { text: curriculoTexto } = await parseResponse.json();
+    console.log("PDF parseado, texto extraído:", curriculoTexto.length, "caracteres");
 
-    // Prepare context about user
+    // Prepare context
     const userContext = profile ? `
 Informações do usuário:
 - Nome: ${profile.nome || "Não informado"}
@@ -91,6 +121,7 @@ Informações do usuário:
 ` : "";
 
     // Call Lovable AI
+    console.log("Chamando IA para análise...");
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -142,6 +173,8 @@ Por favor, analise este currículo e forneça insights para melhoria.`
     const aiData = await aiResponse.json();
     const insights = aiData.choices[0].message.content;
 
+    console.log("Análise concluída com sucesso");
+
     return new Response(
       JSON.stringify({ insights }),
       {
@@ -150,8 +183,9 @@ Por favor, analise este currículo e forneça insights para melhoria.`
     );
   } catch (error) {
     console.error("Erro na função:", error);
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
