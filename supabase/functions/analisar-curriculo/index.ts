@@ -78,10 +78,8 @@ Deno.serve(async (req) => {
 
     // Convert to base64 in chunks
     let binaryString = '';
-    const chunkSize = 8192;
-    for (let i = 0; i < uint8Array.length; i += chunkSize) {
-      const chunk = uint8Array.slice(i, i + chunkSize);
-      binaryString += String.fromCharCode(...chunk);
+    for (let i = 0; i < uint8Array.length; i++) {
+      binaryString += String.fromCharCode(uint8Array[i]);
     }
     const base64 = btoa(binaryString);
 
