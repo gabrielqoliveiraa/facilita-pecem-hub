@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MapPin, Clock, Briefcase } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -66,7 +67,25 @@ const Vagas = () => {
 
         <div className="space-y-4">
           {loading ? (
-            <p className="text-center text-muted-foreground py-8">Carregando vagas...</p>
+            <>
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="p-4 space-y-4">
+                  <div>
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-4 w-1/3" />
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-10 w-32" />
+                  </div>
+                </Card>
+              ))}
+            </>
           ) : vagas.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">Nenhuma vaga disponível no momento</p>
           ) : (
