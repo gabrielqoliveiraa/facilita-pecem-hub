@@ -4,6 +4,7 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
+  console.log("analisar-curriculo edge v3 entrou", new Date().toISOString());
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
