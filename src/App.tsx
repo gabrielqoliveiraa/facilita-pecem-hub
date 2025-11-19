@@ -9,6 +9,7 @@ import Onboarding from "./pages/Onboarding";
 import AuthCallback from "./pages/AuthCallback";
 import Comunidade from "./pages/Comunidade";
 import Trilhas from "./pages/Trilhas";
+import MinhasTrilhas from "./pages/MinhasTrilhas";
 import Rotas from "./pages/Rotas";
 import Vagas from "./pages/Vagas";
 import NotFound from "./pages/NotFound";
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/" element={<Comunidade />} />
           <Route path="/trilhas" element={<Trilhas />} />
+          <Route path="/minhas-trilhas" element={<MinhasTrilhas />} />
           <Route path="/rotas" element={<Rotas />} />
           <Route path="/vagas" element={<Vagas />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

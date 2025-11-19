@@ -62,7 +62,7 @@ const Trilhas = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Pesquise notícias"
-              className="pl-10 h-12"
+              className="pl-10 h-12 bg-white"
             />
           </div>
           <Button variant="outline" size="icon" className="h-12 w-12">
