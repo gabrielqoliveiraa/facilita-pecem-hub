@@ -14,7 +14,7 @@ interface UserSidebarProps {
 }
 
 const menuItems = [
-  { title: "Meu currículo", icon: FileText, path: "/curriculo" },
+  { title: "Meu currículo", icon: FileText, path: "/meu-curriculo" },
   { title: "Minhas competências", icon: Award, path: "/competencias" },
   { title: "Minhas trilhas", icon: BookOpen, path: "/minhas-trilhas" },
   { title: "Minhas vagas", icon: Briefcase, path: "/minhas-vagas" },
