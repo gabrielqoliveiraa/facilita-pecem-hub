@@ -68,28 +68,6 @@ Deno.serve(async (req) => {
       base64 += btoa(binaryChunk);
     }
 
-    const parseResponse = await fetch("https://ai.gateway.lovable.dev/v1/parse-document", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${lovableApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        content: base64,
-        filename: file.name || "curriculo.pdf",
-      }),
-    });
-
-    if (!parseResponse.ok) {
-      const errorText = await parseResponse.text();
-      throw new Error(`Erro ao processar PDF: ${parseResponse.status} - ${errorText.slice(0, 200)}`);
-    }
-
-    const { text: curriculoTexto } = await parseResponse.json();
-
-    const MAX_CHARS = 20000;
-    const curriculoTextoLimitado = curriculoTexto.slice(0, MAX_CHARS);
-
     const userContext = profile ? `
 Informações do usuário:
 - Nome: ${profile.nome || "Não informado"}
@@ -113,9 +91,14 @@ Informações do usuário:
         model: "google/gemini-2.5-flash",
         messages: [
           {
-            role: "system",
-            content: `Você é um especialista em análise de currículos e orientação profissional. 
-Sua função é analisar o currículo fornecido e as informações do perfil do usuário para dar insights práticos e acionáveis.
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `Você é um especialista em análise de currículos e orientação profissional. 
+Sua função é analisar o currículo PDF fornecido e as informações do perfil do usuário para dar insights práticos e acionáveis.
+
+${userContext}
 
 Analise o currículo considerando:
 1. Formatação e estrutura
@@ -131,15 +114,14 @@ Retorne os insights em formato de bullet points (use • para cada ponto), focan
 - Alinhamento com interesses e objetivos do usuário
 
 Seja direto, prático e construtivo. Máximo de 8-10 pontos.`
-          },
-          {
-            role: "user",
-            content: `${userContext}
-
-Conteúdo do currículo (texto truncado se muito longo):
-${curriculoTextoLimitado}
-
-Por favor, analise este currículo e forneça insights para melhoria.`
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:application/pdf;base64,${base64}`
+                }
+              }
+            ]
           }
         ],
       }),
