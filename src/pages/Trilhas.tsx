@@ -205,7 +205,7 @@ const Trilhas = () => {
                         className="h-full rounded-full transition-all"
                         style={{ 
                           width: `${getProgressPercentage(trilha.completedLessons, trilha.totalLessons)}%`,
-                          backgroundColor: trilha.progressBarColor
+                          background: `linear-gradient(90deg, ${trilha.progressBarColor}66, ${trilha.progressBarColor})`
                         }}
                       />
                     </div>
