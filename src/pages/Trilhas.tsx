@@ -344,20 +344,34 @@ const Trilhas = () => {
               ) : (
                 <div className="space-y-3">
                   {outrasTrilhas.map((trilha) => (
-                    <Card key={trilha.id} className="flex items-center gap-3 p-3">
+                    <Card
+                      key={trilha.id}
+                      className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-border shadow-sm hover:shadow-md transition-shadow"
+                    >
                       {trilha.image_url && (
                         <img
                           src={trilha.image_url}
                           alt={trilha.title}
-                          className="w-20 h-20 rounded-lg object-cover"
+                          className="w-20 h-20 rounded-xl object-cover flex-shrink-0"
                         />
                       )}
-                      <div className="flex-1">
-                        <h4 className="font-bold text-navy mb-1">{trilha.title}</h4>
-                        <p className="text-sm text-primary">{trilha.lessons_count} aulas</p>
+                      <div className="flex-1 space-y-1">
+                        <h4 className="font-bold text-navy leading-snug line-clamp-2">
+                          {trilha.title}
+                        </h4>
+                        {trilha.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {trilha.description}
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium mr-1">
+                            {trilha.lessons_count} aulas
+                          </span>
+                        </p>
                       </div>
-                      <Button size="icon" className="rounded-full bg-yellow hover:bg-yellow/90 h-12 w-12">
-                        <Play className="h-5 w-5 fill-current" />
+                      <Button size="icon" className="rounded-full h-11 w-11">
+                        <Play className="h-5 w-5" />
                       </Button>
                     </Card>
                   ))}
