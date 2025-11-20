@@ -16,6 +16,9 @@ import MeuCurriculo from "./pages/MeuCurriculo";
 import Competencias from "./pages/Competencias";
 import MinhasVagas from "./pages/MinhasVagas";
 import NotFound from "./pages/NotFound";
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +41,18 @@ const App = () => (
           <Route path="/meu-curriculo" element={<MeuCurriculo />} />
           <Route path="/competencias" element={<Competencias />} />
           <Route path="/minhas-vagas" element={<MinhasVagas />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <ProtectedAdminRoute>
+                <AdminDashboard />
+              </ProtectedAdminRoute>
+            } 
+          />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
