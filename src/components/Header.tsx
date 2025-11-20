@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import UserSidebar from "./UserSidebar";
+import logo from "@/assets/logo.png";
 
 interface HeaderProps {
   title: string;
@@ -28,7 +29,7 @@ const Header = ({ title }: HeaderProps) => {
             </Avatar>
           </Button>
           
-          <h1 className="text-xl font-bold text-navy">{title}</h1>
+          <img src={logo} alt="FacilitaPecém" className="h-8" />
           
           <Button variant="ghost" size="icon" className="rounded-full">
             <Bell className="h-5 w-5" />

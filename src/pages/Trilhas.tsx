@@ -10,6 +10,10 @@ import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+interface Profile {
+  nome: string;
+}
+
 interface Trilha {
   id: string;
   title: string;
@@ -36,10 +40,31 @@ const Trilhas = () => {
   const [trilhasRecomendadas, setTrilhasRecomendadas] = useState<Trilha[]>([]);
   const [outrasTrilhas, setOutrasTrilhas] = useState<Trilha[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState<string>("");
 
   useEffect(() => {
     fetchTrilhas();
+    fetchUserProfile();
   }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("nome")
+          .eq("id", user.id)
+          .single();
+        
+        if (profile) {
+          setUserName(profile.nome);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao buscar perfil:", error);
+    }
+  };
 
   const fetchTrilhas = async () => {
     try {
@@ -138,7 +163,10 @@ const Trilhas = () => {
 
         {/* Section Title */}
         <div>
-          <h2 className="text-xl font-bold text-navy mb-1">Escolha a trilha</h2>
+          <h2 className="text-xl font-bold text-navy mb-1">
+            Bem-vindo, {userName || "Usuário"}
+          </h2>
+          <p className="text-sm text-muted-foreground">Escolha a trilha</p>
         </div>
 
         {/* Tabs */}
@@ -258,17 +286,33 @@ const Trilhas = () => {
               ) : (
                 <div className="grid grid-cols-2 gap-4">
                   {trilhasRecomendadas.map((trilha) => (
-                    <Card key={trilha.id} className={`${trilha.color_class} p-4 text-white relative overflow-hidden`}>
-                      <div className="relative z-10 space-y-3">
-                        <h4 className="font-bold text-lg leading-tight">
+                    <Card 
+                      key={trilha.id} 
+                      className={`${trilha.color_class || "bg-primary"} p-5 text-white relative overflow-hidden rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.08)] min-h-[160px] flex flex-col justify-between`}
+                    >
+                      <div className="relative z-10 space-y-4">
+                        <h4 className="font-bold text-lg leading-tight min-h-[44px]">
                           {trilha.title}
                         </h4>
-                        <Button size="sm" className="bg-white/20 hover:bg-white/30 backdrop-blur-sm">
-                          Iniciar trilha
+                        {trilha.description && (
+                          <p className="text-sm text-white/80 line-clamp-2">
+                            {trilha.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="relative z-10 flex items-center justify-between mt-4">
+                        <span className="text-sm font-medium text-white/90">
+                          {trilha.lessons_count} aulas
+                        </span>
+                        <Button 
+                          size="sm" 
+                          className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 rounded-full px-4"
+                        >
+                          Iniciar
                         </Button>
                       </div>
                       {trilha.image_url && (
-                        <div className="absolute bottom-0 right-0 w-24 h-24 opacity-20">
+                        <div className="absolute bottom-0 right-0 w-20 h-20 opacity-10">
                           <img src={trilha.image_url} alt="" className="w-full h-full object-contain" />
                         </div>
                       )}
