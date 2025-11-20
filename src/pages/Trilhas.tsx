@@ -284,11 +284,11 @@ const Trilhas = () => {
               ) : trilhasRecomendadas.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">Nenhuma trilha recomendada</p>
               ) : (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
                   {trilhasRecomendadas.map((trilha) => (
                     <Card 
                       key={trilha.id} 
-                      className={`${trilha.color_class || "bg-primary"} p-5 text-navy relative overflow-hidden rounded-2xl shadow-sm min-h-[180px] flex flex-col justify-between`}
+                      className={`${trilha.color_class || "bg-primary"} p-5 text-navy relative overflow-hidden rounded-2xl shadow-sm min-h-[180px] min-w-[160px] flex flex-col justify-between flex-shrink-0 snap-start`}
                     >
                       <div className="relative z-10">
                         <h4 className="font-bold text-base leading-tight mb-2">
@@ -358,7 +358,7 @@ const Trilhas = () => {
                         </p>
                       </div>
                       <Button size="icon" className="rounded-full h-12 w-12 bg-yellow hover:bg-yellow/90 flex-shrink-0">
-                        <Play className="h-5 w-5 text-navy" />
+                        <Play className="h-5 w-5 text-white fill-white" />
                       </Button>
                     </Card>
                   ))}
