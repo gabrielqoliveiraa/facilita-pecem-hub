@@ -285,37 +285,39 @@ const Trilhas = () => {
               ) : trilhasRecomendadas.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">Nenhuma trilha recomendada</p>
               ) : (
-                <div className="relative">
-                  <div 
-                    className="flex gap-3 overflow-x-scroll px-4 -mx-4 pb-2" 
-                    style={{ 
-                      scrollbarWidth: 'none', 
-                      msOverflowStyle: 'none',
-                      WebkitOverflowScrolling: 'touch',
-                      scrollSnapType: 'x mandatory'
+                <div className="-mx-4">
+                  <div
+                    className="flex gap-3 overflow-x-auto px-4 pb-2"
+                    style={{
+                      scrollbarWidth: "none",
+                      msOverflowStyle: "none",
+                      WebkitOverflowScrolling: "touch",
+                      scrollSnapType: "x mandatory",
                     }}
                   >
                     {trilhasRecomendadas.map((trilha) => (
-                      <Card 
-                        key={trilha.id} 
-                        className={`${trilha.color_class || "bg-primary"} p-5 text-navy relative overflow-hidden rounded-2xl shadow-sm h-[180px] w-[160px] flex flex-col justify-between flex-shrink-0`}
-                        style={{ scrollSnapAlign: 'start' }}
+                      <Card
+                        key={trilha.id}
+                        className={`${trilha.color_class || "bg-primary"} text-navy relative overflow-hidden rounded-2xl shadow-sm h-[150px] w-[260px] flex flex-row justify-between flex-shrink-0 hover-scale`}
+                        style={{ scrollSnapAlign: "start" }}
                       >
-                        <div className="relative z-10">
-                          <h4 className="font-bold text-base leading-tight mb-2">
+                        <div className="relative z-10 flex flex-col justify-between py-3 pl-4 pr-2 flex-1">
+                          <h4 className="font-bold text-base leading-snug max-w-[150px]">
                             {trilha.title}
                           </h4>
-                        </div>
-                        <div className="relative z-10 mt-auto">
-                          <Button 
-                            size="sm" 
-                            className="bg-navy text-white hover:bg-navy/90 rounded-lg px-4 py-2 text-sm font-medium"
+                          <Button
+                            size="sm"
+                            className="mt-3 w-max bg-navy text-white hover:bg-navy/90 rounded-lg px-4 py-2 text-xs font-medium"
                           >
                             Iniciar trilha
                           </Button>
                         </div>
-                        <div className="absolute bottom-2 right-2 w-20 h-20">
-                          <img src={trilhaIllustration} alt="" className="w-full h-full object-contain" />
+                        <div className="relative w-[100px] h-full flex items-end justify-center pr-2 pb-2">
+                          <img
+                            src={trilhaIllustration}
+                            alt="Ilustração da trilha"
+                            className="w-full h-auto object-contain"
+                          />
                         </div>
                       </Card>
                     ))}
