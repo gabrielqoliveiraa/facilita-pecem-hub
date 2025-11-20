@@ -7,6 +7,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UserSidebarProps {
   open: boolean;
@@ -22,6 +24,31 @@ const menuItems = [
 ];
 
 const UserSidebar = ({ open, onOpenChange }: UserSidebarProps) => {
+  const [userName, setUserName] = useState<string>("");
+  const [userLocation, setUserLocation] = useState<string>("");
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("nome, bairro")
+          .eq("id", user.id)
+          .single();
+        
+        if (profile) {
+          setUserName(profile.nome);
+          setUserLocation(profile.bairro ? `${profile.bairro}, Ceará, Brasil` : "Ceará, Brasil");
+        }
+      }
+    };
+    
+    if (open) {
+      fetchUserData();
+    }
+  }, [open]);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-[300px] bg-background">
@@ -35,10 +62,10 @@ const UserSidebar = ({ open, onOpenChange }: UserSidebarProps) => {
             </Avatar>
             <div className="flex flex-col">
               <SheetTitle className="text-left text-lg font-bold text-navy">
-                Lucas da Silva
+                {userName || "Usuário"}
               </SheetTitle>
               <p className="text-sm text-muted-foreground text-left">
-                Caucaia, Ceará, Brasil
+                {userLocation}
               </p>
             </div>
           </div>
