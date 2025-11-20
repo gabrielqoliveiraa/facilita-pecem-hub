@@ -19,6 +19,9 @@ import NotFound from "./pages/NotFound";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
+import AdminTrilhas from "./pages/admin/AdminTrilhas";
+import AdminVagas from "./pages/admin/AdminVagas";
+import AdminNoticias from "./pages/admin/AdminNoticias";
 import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute";
 
 const queryClient = new QueryClient();
@@ -58,6 +61,30 @@ const App = () => (
             element={
               <ProtectedAdminRoute>
                 <AdminUsuarios />
+              </ProtectedAdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/trilhas" 
+            element={
+              <ProtectedAdminRoute>
+                <AdminTrilhas />
+              </ProtectedAdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/vagas" 
+            element={
+              <ProtectedAdminRoute>
+                <AdminVagas />
+              </ProtectedAdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/noticias" 
+            element={
+              <ProtectedAdminRoute>
+                <AdminNoticias />
               </ProtectedAdminRoute>
             } 
           />
