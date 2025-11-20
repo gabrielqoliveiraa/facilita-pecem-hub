@@ -288,31 +288,23 @@ const Trilhas = () => {
                   {trilhasRecomendadas.map((trilha) => (
                     <Card 
                       key={trilha.id} 
-                      className={`${trilha.color_class || "bg-primary"} p-5 text-white relative overflow-hidden rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.08)] min-h-[160px] flex flex-col justify-between`}
+                      className={`${trilha.color_class || "bg-primary"} p-5 text-navy relative overflow-hidden rounded-2xl shadow-sm min-h-[180px] flex flex-col justify-between`}
                     >
-                      <div className="relative z-10 space-y-4">
-                        <h4 className="font-bold text-lg leading-tight min-h-[44px]">
+                      <div className="relative z-10">
+                        <h4 className="font-bold text-base leading-tight mb-2">
                           {trilha.title}
                         </h4>
-                        {trilha.description && (
-                          <p className="text-sm text-white/80 line-clamp-2">
-                            {trilha.description}
-                          </p>
-                        )}
                       </div>
-                      <div className="relative z-10 flex items-center justify-between mt-4">
-                        <span className="text-sm font-medium text-white/90">
-                          {trilha.lessons_count} aulas
-                        </span>
+                      <div className="relative z-10 flex items-center justify-between mt-auto">
                         <Button 
                           size="sm" 
-                          className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 rounded-full px-4"
+                          className="bg-navy text-white hover:bg-navy/90 rounded-lg px-4 py-2 text-sm font-medium"
                         >
-                          Iniciar
+                          Iniciar trilha
                         </Button>
                       </div>
                       {trilha.image_url && (
-                        <div className="absolute bottom-0 right-0 w-20 h-20 opacity-10">
+                        <div className="absolute bottom-2 right-2 w-24 h-24 opacity-90">
                           <img src={trilha.image_url} alt="" className="w-full h-full object-contain" />
                         </div>
                       )}
@@ -346,32 +338,27 @@ const Trilhas = () => {
                   {outrasTrilhas.map((trilha) => (
                     <Card
                       key={trilha.id}
-                      className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-border shadow-sm hover:shadow-md transition-shadow"
+                      className="flex items-center gap-4 p-4 rounded-2xl bg-white border-0 shadow-sm hover:shadow-md transition-shadow"
                     >
-                      {trilha.image_url && (
+                      {trilha.image_url ? (
                         <img
                           src={trilha.image_url}
                           alt={trilha.title}
-                          className="w-20 h-20 rounded-xl object-cover flex-shrink-0"
+                          className="w-24 h-20 rounded-xl object-cover flex-shrink-0"
                         />
+                      ) : (
+                        <div className="w-24 h-20 rounded-xl bg-muted flex-shrink-0" />
                       )}
                       <div className="flex-1 space-y-1">
-                        <h4 className="font-bold text-navy leading-snug line-clamp-2">
+                        <h4 className="font-bold text-navy text-base leading-snug">
                           {trilha.title}
                         </h4>
-                        {trilha.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {trilha.description}
-                          </p>
-                        )}
-                        <p className="text-xs text-muted-foreground mt-1">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium mr-1">
-                            {trilha.lessons_count} aulas
-                          </span>
+                        <p className="text-sm text-primary font-medium">
+                          {trilha.lessons_count} aulas
                         </p>
                       </div>
-                      <Button size="icon" className="rounded-full h-11 w-11">
-                        <Play className="h-5 w-5" />
+                      <Button size="icon" className="rounded-full h-12 w-12 bg-yellow hover:bg-yellow/90 flex-shrink-0">
+                        <Play className="h-5 w-5 text-navy" />
                       </Button>
                     </Card>
                   ))}
