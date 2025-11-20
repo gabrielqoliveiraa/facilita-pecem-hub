@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import logo from "@/assets/logo.png";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -74,8 +75,8 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-navy">FacilitaPecem</h1>
+        <div className="text-center space-y-4">
+          <img src={logo} alt="FacilitaPecem" className="h-16 mx-auto" />
           <p className="text-muted-foreground">Entre para continuar</p>
         </div>
 
