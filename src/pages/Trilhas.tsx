@@ -9,6 +9,7 @@ import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import trilhaIllustration from "@/assets/trilha-illustration.png";
 
 interface Profile {
   nome: string;
@@ -284,19 +285,28 @@ const Trilhas = () => {
               ) : trilhasRecomendadas.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">Nenhuma trilha recomendada</p>
               ) : (
-                <div className="relative -mx-4">
-                  <div className="flex gap-3 overflow-x-auto px-4 pb-2 snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+                <div className="relative">
+                  <div 
+                    className="flex gap-3 overflow-x-scroll px-4 -mx-4 pb-2" 
+                    style={{ 
+                      scrollbarWidth: 'none', 
+                      msOverflowStyle: 'none',
+                      WebkitOverflowScrolling: 'touch',
+                      scrollSnapType: 'x mandatory'
+                    }}
+                  >
                     {trilhasRecomendadas.map((trilha) => (
                       <Card 
                         key={trilha.id} 
-                        className={`${trilha.color_class || "bg-primary"} p-5 text-navy relative overflow-hidden rounded-2xl shadow-sm min-h-[180px] w-[160px] flex flex-col justify-between flex-shrink-0 snap-start`}
+                        className={`${trilha.color_class || "bg-primary"} p-5 text-navy relative overflow-hidden rounded-2xl shadow-sm h-[180px] w-[160px] flex flex-col justify-between flex-shrink-0`}
+                        style={{ scrollSnapAlign: 'start' }}
                       >
                         <div className="relative z-10">
                           <h4 className="font-bold text-base leading-tight mb-2">
                             {trilha.title}
                           </h4>
                         </div>
-                        <div className="relative z-10 flex items-center justify-between mt-auto">
+                        <div className="relative z-10 mt-auto">
                           <Button 
                             size="sm" 
                             className="bg-navy text-white hover:bg-navy/90 rounded-lg px-4 py-2 text-sm font-medium"
@@ -304,11 +314,9 @@ const Trilhas = () => {
                             Iniciar trilha
                           </Button>
                         </div>
-                        {trilha.image_url && (
-                          <div className="absolute bottom-2 right-2 w-24 h-24 opacity-90">
-                            <img src={trilha.image_url} alt="" className="w-full h-full object-contain" />
-                          </div>
-                        )}
+                        <div className="absolute bottom-2 right-2 w-20 h-20">
+                          <img src={trilhaIllustration} alt="" className="w-full h-full object-contain" />
+                        </div>
                       </Card>
                     ))}
                   </div>
