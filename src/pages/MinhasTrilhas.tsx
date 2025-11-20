@@ -11,18 +11,21 @@ interface TrilhaEmProgresso {
   completedLessons: number;
   totalLessons: number;
   color: string;
+  progressBarColor: string;
+  playButtonColor: string;
   timeToday: string;
 }
 
 const MinhasTrilhas = () => {
-  // Mock data - será substituído por dados reais do Supabase depois
   const trilhasEmProgresso: TrilhaEmProgresso[] = [
     {
       id: "1",
       title: "Matemática básica",
       completedLessons: 14,
       totalLessons: 24,
-      color: "bg-cyan-400",
+      color: "bg-[#9CD6DA]",
+      progressBarColor: "#5BA3A8",
+      playButtonColor: "#089CA6",
       timeToday: "60min",
     },
     {
@@ -30,7 +33,9 @@ const MinhasTrilhas = () => {
       title: "Guia LinkedIn básico",
       completedLessons: 12,
       totalLessons: 18,
-      color: "bg-orange-300",
+      color: "bg-[#F4B89E]",
+      progressBarColor: "#E89872",
+      playButtonColor: "#E67E48",
       timeToday: "45min",
     },
     {
@@ -38,7 +43,9 @@ const MinhasTrilhas = () => {
       title: "Produção industrial",
       completedLessons: 10,
       totalLessons: 16,
-      color: "bg-yellow-400",
+      color: "bg-[#F4D88E]",
+      progressBarColor: "#E8C35F",
+      playButtonColor: "#D9A83D",
       timeToday: "30min",
     },
     {
@@ -46,7 +53,9 @@ const MinhasTrilhas = () => {
       title: "Marketing digital",
       completedLessons: 10,
       totalLessons: 16,
-      color: "bg-green-400",
+      color: "bg-[#B2E5B0]",
+      progressBarColor: "#7BC979",
+      playButtonColor: "#3D8A39",
       timeToday: "30min",
     },
   ];
@@ -88,32 +97,43 @@ const MinhasTrilhas = () => {
             {trilhasEmProgresso.map((trilha) => (
               <Card 
                 key={trilha.id} 
-                className={`${trilha.color} p-4 text-white relative overflow-hidden`}
+                className={`${trilha.color} p-5 text-[#14142B] relative overflow-hidden rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.08)]`}
               >
-                <div className="relative z-10 space-y-3">
-                  <h4 className="font-bold text-base leading-tight min-h-[40px]">
+                <div className="relative z-10 space-y-4">
+                  <h4 className="font-bold text-lg leading-tight min-h-[44px]">
                     {trilha.title}
                   </h4>
                   
-                  <div className="space-y-2">
-                    <div className="h-1.5 bg-white/30 rounded-full overflow-hidden">
+                  <div className="space-y-3">
+                    <div className="h-2 bg-black/15 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-white rounded-full transition-all"
-                        style={{ width: `${getProgressPercentage(trilha.completedLessons, trilha.totalLessons)}%` }}
+                        className="h-full rounded-full transition-all"
+                        style={{ 
+                          width: `${getProgressPercentage(trilha.completedLessons, trilha.totalLessons)}%`,
+                          background: `linear-gradient(90deg, ${trilha.progressBarColor}33, ${trilha.progressBarColor})`
+                        }}
                       />
                     </div>
                     
-                    <p className="text-sm font-medium">
-                      Completo {trilha.completedLessons}/{trilha.totalLessons}
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-medium opacity-70 mb-1">
+                          Completo
+                        </p>
+                        <p className="text-lg font-bold">
+                          {trilha.completedLessons}/{trilha.totalLessons}
+                        </p>
+                      </div>
+                      
+                      <Button 
+                        size="icon" 
+                        className="rounded-full h-12 w-12 hover:opacity-90 transition-opacity"
+                        style={{ backgroundColor: trilha.playButtonColor }}
+                      >
+                        <Play className="h-5 w-5 fill-white text-white" />
+                      </Button>
+                    </div>
                   </div>
-                  
-                  <Button 
-                    size="icon" 
-                    className="rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm h-12 w-12"
-                  >
-                    <Play className="h-5 w-5 fill-current" />
-                  </Button>
                 </div>
               </Card>
             ))}
