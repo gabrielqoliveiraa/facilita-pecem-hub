@@ -284,32 +284,34 @@ const Trilhas = () => {
               ) : trilhasRecomendadas.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">Nenhuma trilha recomendada</p>
               ) : (
-                <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
-                  {trilhasRecomendadas.map((trilha) => (
-                    <Card 
-                      key={trilha.id} 
-                      className={`${trilha.color_class || "bg-primary"} p-5 text-navy relative overflow-hidden rounded-2xl shadow-sm min-h-[180px] min-w-[160px] flex flex-col justify-between flex-shrink-0 snap-start`}
-                    >
-                      <div className="relative z-10">
-                        <h4 className="font-bold text-base leading-tight mb-2">
-                          {trilha.title}
-                        </h4>
-                      </div>
-                      <div className="relative z-10 flex items-center justify-between mt-auto">
-                        <Button 
-                          size="sm" 
-                          className="bg-navy text-white hover:bg-navy/90 rounded-lg px-4 py-2 text-sm font-medium"
-                        >
-                          Iniciar trilha
-                        </Button>
-                      </div>
-                      {trilha.image_url && (
-                        <div className="absolute bottom-2 right-2 w-24 h-24 opacity-90">
-                          <img src={trilha.image_url} alt="" className="w-full h-full object-contain" />
+                <div className="relative -mx-4">
+                  <div className="flex gap-3 overflow-x-auto px-4 pb-2 snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+                    {trilhasRecomendadas.map((trilha) => (
+                      <Card 
+                        key={trilha.id} 
+                        className={`${trilha.color_class || "bg-primary"} p-5 text-navy relative overflow-hidden rounded-2xl shadow-sm min-h-[180px] w-[160px] flex flex-col justify-between flex-shrink-0 snap-start`}
+                      >
+                        <div className="relative z-10">
+                          <h4 className="font-bold text-base leading-tight mb-2">
+                            {trilha.title}
+                          </h4>
                         </div>
-                      )}
-                    </Card>
-                  ))}
+                        <div className="relative z-10 flex items-center justify-between mt-auto">
+                          <Button 
+                            size="sm" 
+                            className="bg-navy text-white hover:bg-navy/90 rounded-lg px-4 py-2 text-sm font-medium"
+                          >
+                            Iniciar trilha
+                          </Button>
+                        </div>
+                        {trilha.image_url && (
+                          <div className="absolute bottom-2 right-2 w-24 h-24 opacity-90">
+                            <img src={trilha.image_url} alt="" className="w-full h-full object-contain" />
+                          </div>
+                        )}
+                      </Card>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
