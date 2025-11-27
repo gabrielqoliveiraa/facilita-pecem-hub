@@ -173,6 +173,42 @@ export type Database = {
         }
         Relationships: []
       }
+      projetos_sociais: {
+        Row: {
+          contact_info: string | null
+          created_at: string
+          description: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          location: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          location: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          location?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       trilhas: {
         Row: {
           color_class: string | null
@@ -211,6 +247,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      user_projetos_sociais: {
+        Row: {
+          created_at: string
+          id: string
+          inscrito_em: string
+          projeto_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inscrito_em?: string
+          projeto_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inscrito_em?: string
+          projeto_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_projetos_sociais_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos_sociais"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
