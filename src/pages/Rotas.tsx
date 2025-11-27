@@ -5,13 +5,13 @@ import MapDisplay from "@/components/routes/MapDisplay";
 import AddressSearch from "@/components/routes/AddressSearch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, Navigation, Clock, Route } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { MapPin, Navigation, Clock, Route, Key } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_KEY || "";
 
 const Rotas = () => {
   const { toast } = useToast();
+  const [mapboxToken, setMapboxToken] = useState("");
   const [origin, setOrigin] = useState<[number, number] | null>(null);
   const [destination, setDestination] = useState<[number, number] | null>(null);
   const [originAddress, setOriginAddress] = useState("");
@@ -60,8 +60,57 @@ const Rotas = () => {
       <Header title="Rotas" />
       
       <div className="px-4 py-6 space-y-4">
+        {/* Token do Mapbox */}
+        {!mapboxToken && (
+          <Card className="border-primary/50 bg-primary/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Key className="h-4 w-4 text-primary" />
+                Configure o Token do Mapbox
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Cole seu token público do Mapbox abaixo. Você pode obtê-lo em{" "}
+                <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                  mapbox.com
+                </a>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Input
+                type="text"
+                placeholder="pk.eyJ1IjoiZXhhbXBsZS..."
+                value={mapboxToken}
+                onChange={(e) => setMapboxToken(e.target.value)}
+                className="font-mono text-sm"
+              />
+              <Button 
+                onClick={() => {
+                  if (mapboxToken.startsWith('pk.')) {
+                    toast({
+                      title: "Token configurado!",
+                      description: "Agora você pode usar o mapa de rotas",
+                    });
+                  } else {
+                    toast({
+                      title: "Token inválido",
+                      description: "O token deve começar com 'pk.'",
+                      variant: "destructive",
+                    });
+                    setMapboxToken("");
+                  }
+                }}
+                className="w-full"
+                disabled={!mapboxToken}
+              >
+                Salvar Token
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Origem */}
-        <Card>
+        {mapboxToken && (
+          <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <MapPin className="h-4 w-4 text-primary" />
@@ -69,66 +118,71 @@ const Rotas = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button
-              onClick={handleGetCurrentLocation}
-              variant="outline"
-              className="w-full"
-            >
-              <Navigation className="h-4 w-4 mr-2" />
-              Usar minha localização atual
-            </Button>
-            <div className="text-center text-xs text-muted-foreground">ou</div>
-            <AddressSearch
-              mapboxToken={MAPBOX_TOKEN}
-              placeholder="Digite o endereço de origem..."
-              onSelectAddress={(coords, address) => {
-                setOrigin(coords);
-                setOriginAddress(address);
-              }}
-            />
-            {originAddress && (
-              <p className="text-sm text-muted-foreground">📍 {originAddress}</p>
-            )}
-          </CardContent>
-        </Card>
+              <Button
+                onClick={handleGetCurrentLocation}
+                variant="outline"
+                className="w-full"
+              >
+                <Navigation className="h-4 w-4 mr-2" />
+                Usar minha localização atual
+              </Button>
+              <div className="text-center text-xs text-muted-foreground">ou</div>
+              <AddressSearch
+                mapboxToken={mapboxToken}
+                placeholder="Digite o endereço de origem..."
+                onSelectAddress={(coords, address) => {
+                  setOrigin(coords);
+                  setOriginAddress(address);
+                }}
+              />
+              {originAddress && (
+                <p className="text-sm text-muted-foreground">📍 {originAddress}</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Destino */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Route className="h-4 w-4 text-destructive" />
-              Para onde você quer ir?
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AddressSearch
-              mapboxToken={MAPBOX_TOKEN}
-              placeholder="Digite o endereço de destino..."
-              onSelectAddress={(coords, address) => {
-                setDestination(coords);
-                setDestinationAddress(address);
-              }}
-            />
-            {destinationAddress && (
-              <p className="text-sm text-muted-foreground mt-3">🎯 {destinationAddress}</p>
-            )}
-          </CardContent>
-        </Card>
+        {mapboxToken && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Route className="h-4 w-4 text-destructive" />
+                Para onde você quer ir?
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AddressSearch
+                mapboxToken={mapboxToken}
+                placeholder="Digite o endereço de destino..."
+                onSelectAddress={(coords, address) => {
+                  setDestination(coords);
+                  setDestinationAddress(address);
+                }}
+              />
+              {destinationAddress && (
+                <p className="text-sm text-muted-foreground mt-3">🎯 {destinationAddress}</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Mapa */}
-        <div className="h-[400px] rounded-lg overflow-hidden border border-border">
-          <MapDisplay
-            mapboxToken={MAPBOX_TOKEN}
-            origin={origin}
-            destination={destination}
-            onRouteCalculated={(distance, duration, steps) => {
-              setRouteInfo({ distance, duration, steps });
-            }}
-          />
-        </div>
+        {mapboxToken && (
+          <div className="h-[400px] rounded-lg overflow-hidden border border-border">
+            <MapDisplay
+              mapboxToken={mapboxToken}
+              origin={origin}
+              destination={destination}
+              onRouteCalculated={(distance, duration, steps) => {
+                setRouteInfo({ distance, duration, steps });
+              }}
+            />
+          </div>
+        )}
 
         {/* Informações da Rota */}
-        {routeInfo && (
+        {mapboxToken && routeInfo && (
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Informações da Rota</CardTitle>
