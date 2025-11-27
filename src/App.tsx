@@ -38,6 +38,7 @@ const App = () => (
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/" element={<Comunidade />} />
+          <Route path="/comunidade" element={<Comunidade />} />
           <Route path="/trilhas" element={<Trilhas />} />
           <Route path="/minhas-trilhas" element={<MinhasTrilhas />} />
           <Route path="/rotas" element={<Rotas />} />
